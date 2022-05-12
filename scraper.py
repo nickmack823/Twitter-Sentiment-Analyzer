@@ -1,9 +1,11 @@
 import time
 import json
 import csv
+from os.path import exists
 
 from selenium import webdriver
 from selenium.common import exceptions
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
@@ -46,8 +48,8 @@ def search(hashtag, start_date, end_date):
     scroll = driver.find_element(by=By.XPATH, value=xpaths['scroll'])
     driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", scroll)
 
-    min_likes = driver.find_element(by=By.NAME, value='minLikes')
-    min_likes.send_keys('100')
+    # min_likes = driver.find_element(by=By.NAME, value='minLikes')
+    # min_likes.send_keys('100')
 
     # Start month, day, year
     from_month = Select(driver.find_element(by=By.XPATH, value=xpaths['from_month']))
@@ -114,8 +116,11 @@ def scrape(num_tweets_to_scrape):
     # While the number to scrape has not been met and there are still results available, scrape tweets
     while len(text_data) < num_tweets_to_scrape and total_scrolled_height < page_height:
         # Get HTML elements of currently loaded tweets
-        tweets = WebDriverWait(driver, 20).until \
-            (expected_conditions.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='tweet']")))
+        try:
+            tweets = WebDriverWait(driver, 10).until \
+                (expected_conditions.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='tweet']")))
+        except TimeoutException:
+            break
 
         texts, dates, likes, retweets = [], [], [], []
         # Scrape currently available tweets
@@ -139,6 +144,7 @@ def scrape(num_tweets_to_scrape):
                 pass
 
         # If no new data was scraped during this loop iteration, break, no more scraping to be done.
+        print(len(texts))
         if len(texts) == 0:
             results_ended = True
             break
@@ -156,7 +162,7 @@ def scrape(num_tweets_to_scrape):
             results_ended = True
 
     if len(text_data) >= num_tweets_to_scrape:
-        print(f"{len(text_data)} tweets scraped.")
+        print(f"{len(text_data)} tweets scraped from.")
     elif results_ended:
         print(f'End of results, scraped {len(text_data)} tweets.')
     else:
@@ -184,11 +190,11 @@ def clean_data(data):
 
         # If tweet has no likes (and thus '' as that value), set value to 0. Else, send string value to integer
         likes_index = data[2].index(likes)
-        data[2][likes_index] = 0 if likes == '' else int(likes)
+        data[2][likes_index] = 0 if likes == '' else int(likes.replace(',', ''))
 
         # Same for retweets
         retweets_index = data[3].index(retweets)
-        data[3][retweets_index] = 0 if retweets == '' else int(retweets)
+        data[3][retweets_index] = 0 if retweets == '' else int(retweets.replace(',', ''))
 
     return data
 
@@ -197,10 +203,16 @@ def clean_data(data):
 def save_to_csv(cleaned_data):
     months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
               'November', 'December']
-    start_date = f"{months.index(start[0])+1}-{start[1]}-{start[2]}"
-    end_date = f"{months.index(end[0])+1}-{end[1]}-{end[2]}"
+    # start_date = f"{months.index(start[0])+1}-{start[1]}-{start[2]}"
+    # end_date = f"{months.index(end[0])+1}-{end[1]}-{end[2]}"
 
-    with open(f"{tag}_{start_date}_to_{end_date}.csv", 'w', encoding='utf-8') as f:
+    # Append if file exists
+    if exists(f'{tag}.csv'):
+        open_type = 'a'
+    else:
+        open_type = 'w'
+
+    with open(f"{tag}.csv", open_type, encoding='utf-8') as f:
         writer = csv.writer(f)
         headers = ['tweet', 'date', 'likes', 'retweets']
         writer.writerow(headers)
@@ -210,18 +222,27 @@ def save_to_csv(cleaned_data):
 
 
 # Set parameters and search
-start = ('January', '1', '2014')
-end = ('January', '31', '2014')
-tag = 'GunControl'
-search(tag, start, end)
+
+tag = 'abortion'
 tweets_to_scrape = 500
+days = ['1', '7', '14', '21', '28', '31']
+for day in days:
+    if day == '31':
+        break
+    i = days.index(day)
+    start = ('January', day, '2022')
+    end = ('January', days[i+1], '2022')
+    print(start)
+    print(end)
+    search(tag, start, end)
 
-# Scrape tweets
-scraped_data = scrape(tweets_to_scrape)
+    # Scrape tweets
+    scraped_data = scrape(tweets_to_scrape)
+    print(f'Scraped data from {start} to {end}')
 
-# Clean scraped data
-data_cleaned = clean_data(scraped_data)
+    # Clean scraped data
+    data_cleaned = clean_data(scraped_data)
 
-# Save data to CSV
-save_to_csv(data_cleaned)
+    # Save data to CSV
+    save_to_csv(data_cleaned)
 
