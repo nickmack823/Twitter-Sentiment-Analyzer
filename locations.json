@@ -8,5 +8,10 @@
       "to_day": "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[16]/div/div[4]/div/div[2]/select",
       "to_year": "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[16]/div/div[4]/div/div[3]/select",
       "search_button": "//*[@id=\"layers\"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[1]/div/div/div/div/div/div[3]/div"
-    }
+    },
+  "classes": {
+    "dates": "css-4rbku5.css-18t94o4.css-901oao.r-14j79pv.r-1loqt21.r-1q142lx.r-37j5jr.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-3s2u2q.r-qvutc0",
+    "likes": "css-901oao css-16my406 r-poiln3 r-n6v787 r-1cwl3u0 r-vc7bo5 r-1pn2ns4 r-qvutc0",
+    "retweets": "css-901oao.css-16my406.r-poiln3.r-bcqeeo.r-qvutc0"
+  }
 }
