@@ -1,6 +1,7 @@
 import time
 import json
 import csv
+import pandas
 from os.path import exists
 
 from selenium import webdriver
@@ -102,10 +103,22 @@ def search(hashtag, start_date, end_date):
     search_button.click()
 
 
-def scrape(num_tweets_to_scrape):
+def reached_end_of_results(waited=False):
+    page_height = driver.execute_script("return document.body.scrollHeight")
+    total_scrolled_height = driver.execute_script("return window.pageYOffset + window.innerHeight")
+    # Check if scrolled to end of page
+    if total_scrolled_height >= page_height:
+        # Wait for 5 seconds to allow page to load if there is more content
+        if not waited:
+            time.sleep(5)
+            reached_end_of_results(True)
+        else:
+            return True
+
+
+def scrape():
     """
     Scrapes available tweets until parameter limit has been met.
-    :param num_tweets_to_scrape:
     :return:
     """
     text_data, date_data, likes_data, retweets_data = [], [], [], []
@@ -114,7 +127,7 @@ def scrape(num_tweets_to_scrape):
     total_scrolled_height = 0
     results_ended = False
     # While the number to scrape has not been met and there are still results available, scrape tweets
-    while len(text_data) < num_tweets_to_scrape and total_scrolled_height < page_height:
+    while total_scrolled_height < page_height:
         # Get HTML elements of currently loaded tweets
         try:
             tweets = WebDriverWait(driver, 10).until \
@@ -144,7 +157,6 @@ def scrape(num_tweets_to_scrape):
                 pass
 
         # If no new data was scraped during this loop iteration, break, no more scraping to be done.
-        print(len(texts))
         if len(texts) == 0:
             results_ended = True
             break
@@ -154,16 +166,12 @@ def scrape(num_tweets_to_scrape):
         likes_data.extend(likes)
         retweets_data.extend(retweets)
 
-        # Get new page height and scrolled height, waiting for 1 second to account for page loading when scrolling
-        time.sleep(1)
-        page_height = driver.execute_script("return document.body.scrollHeight")
-        total_scrolled_height = driver.execute_script("return window.pageYOffset + window.innerHeight")
-        if total_scrolled_height >= page_height:
-            results_ended = True
+        # Get new page height and scrolled height
+        results_ended = reached_end_of_results()
 
-    if len(text_data) >= num_tweets_to_scrape:
-        print(f"{len(text_data)} tweets scraped from.")
-    elif results_ended:
+    # if len(text_data) >= num_tweets_to_scrape:
+    #     print(f"{len(text_data)} tweets scraped from.")
+    if results_ended:
         print(f'End of results, scraped {len(text_data)} tweets.')
     else:
         print("Scraping failed.")
@@ -175,7 +183,7 @@ def scrape(num_tweets_to_scrape):
 
 def clean_data(data):
     """
-    Iterates through data lists and clean them.
+    Iterates through input tuple of data lists and cleans them.
     :param data: a tuple of lists
     :return: the input tuple with cleaned list elements
     """
@@ -201,48 +209,90 @@ def clean_data(data):
 
 # Write collected tweets to a CSV file
 def save_to_csv(cleaned_data):
-    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
-              'November', 'December']
-    # start_date = f"{months.index(start[0])+1}-{start[1]}-{start[2]}"
-    # end_date = f"{months.index(end[0])+1}-{end[1]}-{end[2]}"
+    """
+    Saves cleaned data to an existing CSV file if one exists, else writes to a new file.
+    :param cleaned_data:
+    :return:
+    """
+    file_name = f"{tag}.csv"
+    # Check if file exists already
+    file_exists = exists(file_name)
+    # If it exists, append data to existing file
+    if file_exists:
+        # Get existing rows to prevent adding duplicate data
+        with open(file_name, 'r', encoding='utf-8') as file1:
+            existing_rows_text = {line[0] for line in csv.reader(file1, delimiter=',')} # Set -t < list -t for lookup
 
-    # Append if file exists
-    if exists(f'{tag}.csv'):
-        open_type = 'a'
+            # Write to existing file
+            with open(file_name, 'a', encoding='utf-8', newline='') as file2:
+                writer = csv.writer(file2)
+                duplicates = 0
+                for n in range(len(cleaned_data[0])):
+                    row = [cleaned_data[0][n], cleaned_data[1][n], cleaned_data[2][n], cleaned_data[3][n]]
+                    if row[0] not in existing_rows_text:
+                        writer.writerow(row)
+                    else:
+                        duplicates += 1
+                print(f'Skipped {duplicates} duplicate rows.')
     else:
-        open_type = 'w'
+        # Write to new CSV (newline set to '' to prevent empty rows between each entry)
+        with open(file_name, 'w', encoding='utf-8', newline='') as file3:
+            writer = csv.writer(file3)
+            # If writing to new file, add header row
+            headers = ['tweet', 'date', 'likes', 'retweets']
+            writer.writerow(headers)
+            for n in range(len(cleaned_data[0])):
+                row = [cleaned_data[0][n], cleaned_data[1][n], cleaned_data[2][n], cleaned_data[3][n]]
+                writer.writerow(row)
 
-    with open(f"{tag}.csv", open_type, encoding='utf-8') as f:
-        writer = csv.writer(f)
-        headers = ['tweet', 'date', 'likes', 'retweets']
-        writer.writerow(headers)
-        for n in range(len(cleaned_data[0])):
-            row = [cleaned_data[0][n], cleaned_data[1][n], cleaned_data[2][n], cleaned_data[3][n]]
-            writer.writerow(row)
+
+def collect_top_tweets_month(month, year):
+    # months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+    #           'November', 'December']
+    months_with_31_days = ['January', 'March', 'May', 'July', 'August', 'October', 'December']
+
+    # Determine final day of the given month
+    if month == 'February':
+        # Check for leap year
+        y = int(year)
+        if ((y % 400 == 0) and (y % 100 == 0)) or ((y % 4 == 0) and (y % 100 != 0)):
+            final_day = '29'
+            print('LEAP YEAR')
+        else:
+            final_day = '28'
+            print('NOT LEAP YEAR')
+    else:
+        final_day = '31' if month in months_with_31_days else '30'
+
+    # Get top tweets from each day in month
+    # if interval == 'daily':
+    days = [str(day) for day in range(1, int(final_day)+1)]
+    print(days)
+    # # Get top tweets from each week in month
+    # if interval == 'weekly':
+    #     days = ['1', '7', '14', '21', '28', final_day]
+
+    # Start collecting tweets from each day
+    for day in days:
+        if day == final_day:
+            break
+        start = (month, day, year)
+        end = (month, days[days.index(day)+1], year)
+        print(f'Scraping from {start} to {end}')
+        search(tag, start, end)
+
+        # Scrape tweets
+        scraped_data = scrape()
+        print(f'Scraped data from {start} to {end}')
+
+        # Clean scraped data
+        data_cleaned = clean_data(scraped_data)
+
+        # Save data to CSV
+        save_to_csv(data_cleaned)
 
 
 # Set parameters and search
-
 tag = 'abortion'
-tweets_to_scrape = 500
-days = ['1', '7', '14', '21', '28', '31']
-for day in days:
-    if day == '31':
-        break
-    i = days.index(day)
-    start = ('January', day, '2022')
-    end = ('January', days[i+1], '2022')
-    print(start)
-    print(end)
-    search(tag, start, end)
-
-    # Scrape tweets
-    scraped_data = scrape(tweets_to_scrape)
-    print(f'Scraped data from {start} to {end}')
-
-    # Clean scraped data
-    data_cleaned = clean_data(scraped_data)
-
-    # Save data to CSV
-    save_to_csv(data_cleaned)
-
+# tweets_to_scrape = 500
+collect_top_tweets_month('February', '2020')
