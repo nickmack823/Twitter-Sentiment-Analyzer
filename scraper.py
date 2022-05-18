@@ -247,8 +247,6 @@ def save_to_csv(cleaned_data):
 
 
 def collect_top_tweets_month(month, year):
-    # months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
-    #           'November', 'December']
     months_with_31_days = ['January', 'March', 'May', 'July', 'August', 'October', 'December']
 
     # Determine final day of the given month
@@ -264,13 +262,8 @@ def collect_top_tweets_month(month, year):
     else:
         final_day = '31' if month in months_with_31_days else '30'
 
-    # Get top tweets from each day in month
-    # if interval == 'daily':
     days = [str(day) for day in range(1, int(final_day)+1)]
     print(days)
-    # # Get top tweets from each week in month
-    # if interval == 'weekly':
-    #     days = ['1', '7', '14', '21', '28', final_day]
 
     # Start collecting tweets from each day
     for day in days:
@@ -292,7 +285,24 @@ def collect_top_tweets_month(month, year):
         save_to_csv(data_cleaned)
 
 
+def collect_top_tweets_day(day, month, year):
+    start = (month, day, year)
+    print(f'Scraping from {start} to {start}')
+    search(tag, start, start)
+
+    # Scrape tweets
+    scraped_data = scrape()
+    print(f'Scraped data from {start} to {start}')
+
+    # Clean scraped data
+    data_cleaned = clean_data(scraped_data)
+
+    # Save data to CSV
+    save_to_csv(data_cleaned)
+
+
 # Set parameters and search
 tag = 'abortion'
 # tweets_to_scrape = 500
-collect_top_tweets_month('February', '2020')
+# collect_top_tweets_month('February', '2020')
+collect_top_tweets_day(1, 'February', '2022')
