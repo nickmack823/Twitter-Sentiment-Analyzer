@@ -1,6 +1,5 @@
 import os
 import time
-
 import nltk
 import pandas
 import statistics
@@ -248,6 +247,16 @@ def test_classifier_accuracy(name, classifier, features):
     return classifier_accuracy
 
 
+def speed_calc_decorator(function):
+    def wrapper(*args):
+        start_time = time.time()
+        function(*args)
+        end_time = time.time()
+        print(f'{function.__name__} run time: {end_time - start_time} seconds')
+    return wrapper
+
+
+@speed_calc_decorator
 def test_classifiers(classifiers):
     features = get_features()
     accuracies = []
@@ -303,29 +312,24 @@ def columnize_results(results):
     return sentiments_column
 
 
-# Get classifiers
-c = get_classifiers()
+if __name__ == "__main__":
+    # Get classifiers
+    c = get_classifiers()
 
-topic = 'abortion'
-df = pandas.read_csv(f'{topic}.csv')
-tweet_list = df.loc[:, 'tweet'].tolist()
-# print(len(tweet_list))
+    # topic = 'abortion'
+    # df = pandas.read_csv(f'{topic}.csv')
+    # tweet_list = df.loc[:, 'tweet'].tolist()
+    # # print(len(tweet_list))
+    #
+    # # Get classifications for each tweet
+    # classifications = classify_tweets(tweet_list)
+    #
+    # # Determine majority classification for each tweet and transform results into a column for DataFrame
+    # sentiment_column = columnize_results(classifications)
+    #
+    # # Append sentiment column to DataFrame and write to CSV
+    # df['sentiment'] = sentiment_column
+    #
+    # df.to_csv(f'{topic}_classified.csv')
 
-# Get classifications for each tweet
-classifications = classify_tweets(tweet_list)
-
-# Determine majority classification for each tweet and transform results into a column for DataFrame
-sentiment_column = columnize_results(classifications)
-
-# Append sentiment column to DataFrame and write to CSV
-df['sentiment'] = sentiment_column
-# print(df.head())
-
-df.to_csv(f'{topic}_classified.csv')
-
-start_time = time.time()
-print(start_time)
-test_classifiers(c)
-end_time = time.time()
-print(end_time)
-print(end_time - start_time)
+    test_classifiers(c)
