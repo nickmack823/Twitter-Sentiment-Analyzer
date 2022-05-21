@@ -1,23 +1,46 @@
-from scraper import Scraper
-import sentiment_classifier
+import datetime
+import time
+import threading
+from pathlib import Path
+from queue import Queue
+from scraper import Scraper, get_days_in_month, save_to_csv
+from sentiment_classifier import classify
+from os.path import exists
+import pandas
+
+months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
+          'October', 'November', 'December']
 
 if __name__ == "__main__":
-    all_these_words, exact_phrase, any_these_words, none_these_words, hashtags = '', '', '', '', ''
-    from_accounts, to_accounts, mentioning_accounts = '', '', ''
-    min_replies, min_likes, min_retweets = '', '', ''
+    # hashtag, from_account, mentioning_account = '', '', '',
 
-    # TODO: Receive parameter declarations
+    # TODO: Receive parameter inputs
+    dates = ('29', 'December', '2021'), ('19', 'March', '2022')
+    sample_hashtags = ['abortion', 'vaccines', 'Marvel', 'Batman']
+    # for hashtag in sample_hashtags:
+    # mentioning_account = ''
 
-    hashtags = 'abortion'
-    from_accounts = '@DonaldTrump'
+    s = Scraper(sample_hashtags[0], dates)
 
-    word_params = (all_these_words, exact_phrase, any_these_words, none_these_words, hashtags)
-    account_params = (from_accounts, to_accounts, mentioning_accounts)
-    engagement_params = (min_replies, min_likes, min_retweets)
+    start_time = time.time()
+    s.begin_scraping_process()
+    seconds = time.time() - start_time
+    runtime = datetime.timedelta(seconds=seconds)
+    print(f'Scraping runtime: {runtime}')
+    # Getting scraped output
 
-    search_parameters = (word_params, account_params, engagement_params)
-    date_range = ('27', 'February', '2022'), ('28', 'March', '2022')
+        # # Read newly scraped data
+        # file_path = scraper.file_path
+        # if not exists(file_path):
+        #     exit('Data file does not exist, exiting.')
+        # df = pandas.read_csv(file_path)
+        # tweet_list = df.loc[:, 'tweet'].tolist()
+        #
+        # # Determine classifications for each tweet and transform results into a column for DataFrame
+        # sentiment_column = classify(tweet_list)
+        #
+        # # # Append sentiment column to DataFrame and write to CSV
+        # df['sentiment'] = pandas.Series(sentiment_column)
+        # new_path = Path(str(file_path) + '_classified')
+        # df.to_csv(new_path)
 
-    scraper = Scraper(search_parameters, date_range)
-    # begin_scraping_process('abortion', s, e)
-    scraper.begin_scraping_process(('27', 'February', '2022'), ('28', 'March', '2022'))
