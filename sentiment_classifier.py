@@ -1,5 +1,4 @@
 import os
-import time
 import nltk
 import pandas
 import statistics
@@ -247,16 +246,6 @@ def test_classifier_accuracy(name, classifier, features):
     return classifier_accuracy
 
 
-def speed_calc_decorator(function):
-    def wrapper(*args):
-        start_time = time.time()
-        function(*args)
-        end_time = time.time()
-        print(f'{function.__name__} run time: {end_time - start_time} seconds')
-    return wrapper
-
-
-@speed_calc_decorator
 def test_classifiers(classifiers):
     features = get_features()
     accuracies = []
@@ -272,64 +261,47 @@ def test_classifiers(classifiers):
     print(accuracies)
 
 
-def classify_tweets(tweets):
+def classify_tweets(tweets, classifiers):
     print('Classifying tweets...')
-    analysis_results = {}
+    analysis_results = []
+    # classifiers = get_classifiers()
 
+    n = 0
     for tweet in tweets:
         individual_results = []
         tweet_features = extract_features(tweet)
-        for name, classifier in c.items():
+        for name, classifier in classifiers.items():
             sentiment = classifier.classify(tweet_features)
             individual_results.append((name, sentiment))
 
-        analysis_results[tweet] = individual_results
-
-    print('Tweets classified.')
+        analysis_results.append(individual_results)
+        n += 1
+        print(f'{n}/{len(tweets)} tweets classified.')
 
     return analysis_results
 
 
-def columnize_results(results):
-    sentiments_column = []
-
-    for tweet, result in results.items():
+def get_majority_sentiments(results):
+    sentiments_list = []
+    for result in results:
         positive_classifications = 0
         negative_classifications = 0
-        for classification in results[tweet]:
+        for classification in result:
             if classification[1] == 'pos':
                 positive_classifications += 1
             else:
                 negative_classifications += 1
 
         if positive_classifications > negative_classifications:
-            sentiment = 'positive'
+            majority_sentiment = 'positive'
         else:
-            sentiment = 'negative'
+            majority_sentiment = 'negative'
 
-        sentiments_column.append(sentiment)
+        sentiments_list.append(majority_sentiment)
 
-    return sentiments_column
+    return sentiments_list
 
 
-if __name__ == "__main__":
-    # Get classifiers
-    c = get_classifiers()
-
-    # topic = 'abortion'
-    # df = pandas.read_csv(f'{topic}.csv')
-    # tweet_list = df.loc[:, 'tweet'].tolist()
-    # # print(len(tweet_list))
-    #
-    # # Get classifications for each tweet
-    # classifications = classify_tweets(tweet_list)
-    #
-    # # Determine majority classification for each tweet and transform results into a column for DataFrame
-    # sentiment_column = columnize_results(classifications)
-    #
-    # # Append sentiment column to DataFrame and write to CSV
-    # df['sentiment'] = sentiment_column
-    #
-    # df.to_csv(f'{topic}_classified.csv')
-
-    test_classifiers(c)
+def classify(tweets, classifiers):
+    classifications = classify_tweets(tweets, classifiers)
+    return get_majority_sentiments(classifications)
