@@ -1,4 +1,5 @@
 import os
+import mysql
 import nltk
 import pandas
 import statistics
@@ -20,11 +21,14 @@ from sklearn.neural_network import MLPClassifier
 root_path = Path('.')  # Get root file path with pathlib
 pickle_dir = 'pickled_files'
 joblib_dir = 'joblib_files'
+pos_bigram_path = root_path / joblib_dir / 'positive_bigram_finder.joblib'
+neg_bigram_path = root_path / joblib_dir / 'negative_bigram_finder.joblib'
 positive_tweets_path = root_path / pickle_dir / 'positive_tweets.pickle'
 negative_tweets_path = root_path / pickle_dir / 'negative_tweets.pickle'
 positive_features_path = root_path / pickle_dir / 'positive_tweet_features.pickle'
 negative_features_path = root_path / pickle_dir / 'negative_tweet_features.pickle'
 accuracies_path = root_path / pickle_dir / 'classifier_accuracies.pickle'
+
 
 if not os.path.exists(pickle_dir):
     os.mkdir(pickle_dir)
@@ -139,6 +143,42 @@ def get_training_tweets():
         store_data(negative_tweets_path, negative_tweets)
 
     return positive_tweets, negative_tweets
+
+
+# def get_bigram_finders():
+#     stopwords, pos_tweets, neg_tweets = None, None, None
+#     if exists(pos_bigram_path):
+#         positive_bigram_finder = get_data(pos_bigram_path)
+#     else:
+#         stopwords = nltk.corpus.stopwords.words("english")
+#         # Add names to unwanted words list, they don't help much for sentiment
+#         stopwords.extend([w.lower() for w in nltk.corpus.names.words()])
+#         pos_tweets, neg_tweets = get_training_tweets()
+#         pos_tokenized_lists = [nltk.word_tokenize(tweet) for tweet in pos_tweets]
+#         pos_tokenized_words = []
+#         for word_list in pos_tokenized_lists:
+#             for word in word_list:
+#                 pos_tokenized_words.append(word)
+#
+#         positive_bigram_finder = nltk.collocations.BigramCollocationFinder.from_words([
+#             w for w in pos_tokenized_words if w.isalpha() and w not in stopwords])
+#
+#         store_data(pos_bigram_path, positive_bigram_finder)
+#     if exists(neg_bigram_path):
+#         negative_bigram_finder = get_data(neg_bigram_path)
+#     else:
+#         neg_tokenized_lists = [nltk.word_tokenize(tweet) for tweet in neg_tweets]
+#         neg_tokenized_words = []
+#         for word_list in neg_tokenized_lists:
+#             for word in word_list:
+#                 neg_tokenized_words.append(word)
+#
+#         negative_bigram_finder = nltk.collocations.BigramCollocationFinder.from_words([
+#             w for w in neg_tokenized_words if w.isalpha() and w not in stopwords])
+#
+#         store_data(neg_bigram_path, negative_bigram_finder)
+#
+#     return positive_bigram_finder, negative_bigram_finder
 
 
 def get_features_from_tweets(positive_tweets, negative_tweets):
@@ -276,7 +316,7 @@ def classify_tweets(tweets, classifiers):
 
         analysis_results.append(individual_results)
         n += 1
-        print(f'{n}/{len(tweets)} tweets classified.')
+        # print(f'{n}/{len(tweets)} tweets classified.')
 
     return analysis_results
 

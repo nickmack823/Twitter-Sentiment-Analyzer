@@ -1,12 +1,10 @@
 import sys
 import time
 import json
-import pandas
 from os.path import exists
 from pathlib import Path
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
-from selenium.common import exceptions
-from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
@@ -19,12 +17,13 @@ search_url = 'https://twitter.com/search-advanced'
 root_path = Path('.')
 scraper_dir = 'scraper_files'
 data_dir = 'data_files'
-chromedriver_path = root_path / scraper_dir / 'chromedriver.exe'
+# chromedriver_path = root_path / scraper_dir / 'chromedriver.exe'
 html_locations_path = root_path / scraper_dir / 'locations.json'
 
 if not exists(html_locations_path):
     sys.exit('Locations JSON file missing, unable to continue.')
 
+# Get HTML elements' info
 f = open(html_locations_path, 'r')
 locations = json.load(f)
 xpaths = locations['xpaths']
@@ -37,34 +36,28 @@ def scrape_displayed_tweet_elements(tweet_elements, collected_elements):
     texts, dates, likes, retweets = [], [], [], []
     # Scrape currently available tweets
     for t in tweet_elements:
-        try:
+        # try:
             # Scroll to tweet to ensure all of its elements are loaded, avoiding visited tweets
-            if t not in collected_elements:
-                newly_collected.append(t)
-                texts.append(t.find_element(By.CSS_SELECTOR, "[data-testid='tweetText']").text)
-                dates.append(t.find_element(By.CLASS_NAME, classes['dates']).text)
-                likes.append(t.find_element(By.CSS_SELECTOR, "[data-testid='like']").text)
-                retweets.append(t.find_element(By.CSS_SELECTOR, "[data-testid='retweet']").text)
-        except exceptions.StaleElementReferenceException:
-            pass
+        if t not in collected_elements:
+            newly_collected.append(t)
+            texts.append(t.find_element(By.CSS_SELECTOR, "[data-testid='tweetText']").text)
+            dates.append(t.find_element(By.CLASS_NAME, classes['dates']).text)
+            likes.append(t.find_element(By.CSS_SELECTOR, "[data-testid='like']").text)
+            retweets.append(t.find_element(By.CSS_SELECTOR, "[data-testid='retweet']").text)
+        # except exceptions.StaleElementReferenceException:
+        #     pass
 
     return texts, dates, likes, retweets, newly_collected
 
 
 class Scraper:
-    # TWITTER CRAWL DELAY: 1 SECOND
-    driver, service = None, None
-
-    hashtag = ''
-    file_path = ''
-    # HTML element info
-    xpaths, classes = [], []
 
     def __init__(self, hashtag):
-        self.service = Service(str(chromedriver_path))
+        # self.service = Service(str(chromedriver_path))
         self.hashtag = hashtag
         self.file_path = root_path / data_dir / f"{self.hashtag}.csv"
-        self.driver = webdriver.Chrome(service=self.service)
+        # self.driver = webdriver.Chrome(service=self.service)
+        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
     def select_date_parameters(self, start_date, end_date):
         start_day, start_month, start_year = start_date
@@ -124,22 +117,22 @@ class Scraper:
         """
         self.driver.get(search_url)
 
-        try:
-            these_hashtags = WebDriverWait(self.driver, 20).until \
-                (expected_conditions.presence_of_element_located((By.NAME, 'theseHashtags')))
-            these_hashtags.send_keys(self.hashtag)
+        # try:
+        these_hashtags = WebDriverWait(self.driver, 20).until \
+            (expected_conditions.presence_of_element_located((By.NAME, 'theseHashtags')))
+        these_hashtags.send_keys(self.hashtag)
 
-            scroll = self.driver.find_element(by=By.XPATH, value=xpaths['scroll'])
-            self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", scroll)
+        scroll = self.driver.find_element(by=By.XPATH, value=xpaths['scroll'])
+        self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", scroll)
 
-            self.select_date_parameters(start_date, end_date)
+        self.select_date_parameters(start_date, end_date)
 
-            # Parameters set, now search
-            search_button = self.driver.find_element(by=By.XPATH, value=xpaths['search_button'])
-            search_button.click()
-        except TimeoutException as e:
-            print(e)
-            # self.reset_scraping_process()
+        # Parameters set, now search
+        search_button = self.driver.find_element(by=By.XPATH, value=xpaths['search_button'])
+        search_button.click()
+        # except TimeoutException as e:
+        #     print(e)
+        #     # self.reset_scraping_process()
 
     def reached_end_of_results(self, tweet_element_height, waited_for_load=False):
         page_height = self.driver.execute_script("return document.body.scrollHeight")
@@ -165,39 +158,39 @@ class Scraper:
         # While there are still results available, scrape them
         while True:
             # Get HTML elements of currently loaded tweets
-            try:
-                tweet_elements = WebDriverWait(self.driver, 10).until \
-                    (expected_conditions.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='tweet']")))
-                # Store last loaded tweet info for later retrieval (preventing StaleElementException)
-                last_tweet = tweet_elements[-1]
-                tweet_locations.append(last_tweet.location)
-                tweet_heights.append(last_tweet.size['height'])
+            # try:
+            tweet_elements = WebDriverWait(self.driver, 10).until \
+                (expected_conditions.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='tweet']")))
+            # Store last loaded tweet info for later retrieval (preventing StaleElementException)
+            last_tweet = tweet_elements[-1]
+            tweet_locations.append(last_tweet.location)
+            tweet_heights.append(last_tweet.size['height'])
 
-                texts, dates, likes, retweets, newly_collected = scrape_displayed_tweet_elements(
-                    tweet_elements, collected_tweets)
-                collected_tweets.extend(newly_collected)
+            texts, dates, likes, retweets, newly_collected = scrape_displayed_tweet_elements(
+                tweet_elements, collected_tweets)
+            collected_tweets.extend(newly_collected)
 
-                # Update main data lists
-                text_data.extend(texts)
-                date_data.extend(dates)
-                likes_data.extend(likes)
-                retweets_data.extend(retweets)
+            # Update main data lists
+            text_data.extend(texts)
+            date_data.extend(dates)
+            likes_data.extend(likes)
+            retweets_data.extend(retweets)
 
-                if tweet_locations[-1] in scrolled_to:
-                    results_ended = self.reached_end_of_results(tweet_heights[-1])
-                else:
-                    last_tweet_location = tweet_locations[-1]
-                    self.driver.execute_script(
-                        f"window.scrollTo({last_tweet_location['x']}, {last_tweet_location['y']})")
-                    scrolled_to.append(last_tweet_location)
-                    results_ended = False
+            if tweet_locations[-1] in scrolled_to:
+                results_ended = self.reached_end_of_results(tweet_heights[-1])
+            else:
+                last_tweet_location = tweet_locations[-1]
+                self.driver.execute_script(
+                    f"window.scrollTo({last_tweet_location['x']}, {last_tweet_location['y']})")
+                scrolled_to.append(last_tweet_location)
+                results_ended = False
 
-                if results_ended:
-                    print(f'End of results, scraped {len(text_data)} tweets.')
-                    break
-            except TimeoutException as e:
-                print(e)
-            except StaleElementReferenceException as e:
-                print(e)
+            if results_ended:
+                print(f'End of results, scraped {len(text_data)} tweets.')
+                break
+            # except TimeoutException as e:
+            #     print(e)
+            # except StaleElementReferenceException as e:
+            #     print(e)
 
         return text_data, date_data, likes_data, retweets_data
