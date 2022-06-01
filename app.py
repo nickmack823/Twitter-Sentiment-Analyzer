@@ -9,6 +9,11 @@ def home():
     return render_template("index.html")
 
 
+@app.route("/scraper.html")
+def scraper():
+    return render_template("scraper.html")
+
+
 @app.route("/generic.html")
 def generic():
     return render_template("generic.html")

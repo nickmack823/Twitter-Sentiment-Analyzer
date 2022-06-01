@@ -207,11 +207,9 @@ class Main:
         self.date_range = date_range
         self.scraper = Scraper(selected_hashtag)
         self.current_search_year = self.date_range[0][2]
-        print('Preparing classifiers...')
         self.classifiers = classifiers
         self.data_thread = DataProcessingThread(self, self.classifiers)
         self.data_thread.daemon = True
-        # self.thread_running = False
         self.done_scraping = False
 
     def day_tweets_already_collected(self, date):

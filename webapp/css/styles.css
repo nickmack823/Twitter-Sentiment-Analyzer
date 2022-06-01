@@ -1,0 +1,127 @@
+
+/* Top Container */
+
+.top-container {
+  text-align: center;
+  background-color: cyan;
+  padding: 100px;
+}
+
+.main-header {
+  font-family: "Montserrat", serif;
+  font-size: 1.5rem;
+}
+
+.main-list {
+  font-family: "Merriweather", serif;
+  list-style-type: none;
+  padding-top: 20px;
+  font-size: 1.25rem;
+}
+
+.main-list-item {
+  display: inline;
+  padding-right: 15px;
+}
+
+.section-headers {
+  text-align: center;
+  font-family: "Merriweather", serif;
+}
+
+.centered-inline-button {
+  display: inline;
+}
+
+/* Introduction */
+
+
+.centered-paragraph {
+  text-align: center;
+  line-height: 2;
+  font-size: 1.25rem;
+}
+
+#intro-image {
+  width: 25%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Topic Sentiment Analyzer */
+
+#analyzer-image {
+  width: 35%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.form-inline {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  width: 50%;
+  margin-left: 25%;
+}
+
+.form-inline label {
+  margin: 5px 10px 5px 0px;
+  font-size: 1.25rem;
+}
+
+.form-inline input {
+  vertical-align: middle;
+  margin: 5px 10px 5px 0px;
+  padding: 10px 10px 10px 0px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: dodgerblue;
+  border: 1px solid #ddd;
+  color: white;
+}
+
+button:hover {
+  background-color: royalblue;
+}
+
+/* Single-Tweet Classifier */
+
+#single-tweet-image {
+  width: 30%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 50%;
+}
+
+/* Classification Results Table */
+
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+
+.results-header {
+  background-color: #D6EEEE;
+  width: 50%;
+}
+
+.results-table {
+  display: inline-table;
+  background-color: rgb(158, 241, 190);
+  text-align: center;
+  width: 30%;
+  margin-left: 200px;
+}
+
+#classifier-results-info {
+  display: inline;
+  margin-left: 10%;
+}

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Twitter Sentiment Analyzer</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather&family=Montserrat&family=Sacramento&display=swap" rel="stylesheet">
+  </head>
+  <body>
+
+    <!-- Top Container -->
+
+    <div class="top-container">
+      <h3 class="main-header">Twitter Sentiment Analyzer</h3>
+      <h3 class="main-header">by Nicholas MacKinnon</h3>
+        <ul class="main-list">
+          <li class="main-list-item"><a href="">Introduction</a></li>
+          <li class="main-list-item"><a href="">Topic Sentiment Analyzer</a></li>
+          <li class="main-list-item"><a href="">Single-Tweet Classifier</a></li>
+          <li class="main-list-item"><a href="">Project Details</a></li>
+        </ul>
+    </div>
+
+    <hr />
+
+    <!-- Introduction -->
+
+    <div class="introduction">
+      <h1 class="section-headers">Introduction</h1>
+      <img id="intro-image" src="images/twitter_search_logo.jpg" alt="twitter-search-logo">
+      <p class="centered-paragraph">
+        Vivamus fermentum dui vel odio vestibulum, vel accumsan enim aliquam. Sed dignissim turpis eu suscipit congue. Vestibulum elementum ac quam eu pellentesque. Aliquam suscipit magna nec congue malesuada. Sed odio lectus, lacinia non neque id, congue pulvinar dui. Phasellus tincidunt fringilla lectus, ac varius metus finibus non. Nunc ut iaculis tellus. Mauris eu mattis lacus. Vivamus tempor neque velit, in posuere arcu suscipit et. Ut nec scelerisque nisi. Etiam ut nibh ac sem malesuada fermentum dapibus vitae est. Nam pretium fringilla ex, sit amet ornare velit efficitur ut.
+      </p>
+    </div>
+
+    <hr />
+
+    <!-- Topic Sentiment Analyzer -->
+    <div class="topic-analyzer">
+      <h1 class="section-headers">Topic Sentiment Analyzer</h1>
+      <img id="analyzer-image" src="images/speech_bubbles.png" alt="speech-bubbles" />
+      <p class="centered-paragraph">
+        Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque hendrerit luctus.
+      </p>
+      <form class="form-inline" action="/url" method="GET">
+        <label for="hashtag">Hashtag:</label>
+        <input type="text" id="hashtag">
+        <label for="start-date">Start date:</label>
+        <input type="date" id="start-date">
+        <label for="end-date">End date:</label>
+        <input type="date" id="end-date">
+      </form>
+      <div style="text-align:center; padding:5px;">
+        <p class="centered-paragraph">Estimated analysis duration:</p>
+        <button class="centered-inline-button">Begin Data Collection & Analysis</button>
+      </div>
+    </div>
+
+    <!-- Single-Tweet Classifier -->
+
+    <hr />
+
+    <div class="topic-analyzer">
+      <h1 class="section-headers">Single-Tweet Classifier</h1>
+      <img id="single-tweet-image" src="images/tweet_tweet.jpg" alt="tweet-tweet" />
+      <p class="centered-paragraph">
+        Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque hendrerit luctus.
+      </p>
+      <form class="form-inline" action="/url" method="GET">
+        <input type="text" id="tweet-text" style="width:75%;margin-right:auto;">
+        <button class="centered-inline-button">Classify</button>
+      </form>
+
+      <!-- Classification Results Table -->
+      <h2 style="text-align: center;">Classification Results</h2>
+      <div class="classification-results-div">
+        <table class="results-table">
+          <tr>
+            <th class="results-header">Classifier</th>
+            <th class="results-header">Sentiment Prediction</th>
+          </tr>
+          <tr>
+            <td>Classifier 1</td>
+            <td>Prediction 1</td>
+          </tr>
+          <tr>
+            <td>Classifier 2</td>
+            <td>Prediction 2</td>
+          </tr>
+          <tr>
+            <td>Classifier 3</td>
+            <td>Prediction 3</td>
+          </tr>
+          <tr>
+            <td>Classifier 4</td>
+            <td>Prediction 4</td>
+          </tr>
+          <tr>
+            <td>Classifier 5</td>
+            <td>Prediction 5</td>
+          </tr>
+          <tr>
+            <td>Classifier 6</td>
+            <td>Prediction 6</td>
+          </tr>
+          <tr>
+            <td>Classifier 7</td>
+            <td>Prediction 7</td>
+          </tr>
+        </table>
+        <p id="classifier-results-info">
+          CLASSIFIER INFO HERE
+        </p>
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- Project Details -->
+
+    <h1 class="section-headers">Project Details</h1>
+    <img id="single-tweet-image" src="images/tweet_tweet.jpg" alt="tweet-tweet" />
+    <p class="centered-paragraph">
+      Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque hendrerit luctus.
+    </p>
+
+  </body>
+</html>
