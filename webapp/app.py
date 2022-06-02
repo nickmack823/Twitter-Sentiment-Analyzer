@@ -9,16 +9,12 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/scraper.html")
-def scraper():
-    return render_template("scraper.html")
+@app.route("/", methods=['POST'])  # For getting form data
+def collect_data():
+    return render_template('index.html')
 
 
-@app.route("/generic.html")
-def generic():
-    return render_template("generic.html")
-
-# To render static files (images, videos, css files, etc), create 'static' folder and reference things in there
+# To render static files (static, videos, css files, etc), create 'static' folder and reference things in there
 
 # TO DIRECTLY EDIT A WEBPAGE FROM CHROME ITSELF:
 # 1. Inspect --> Console --> document.body.contentEditable=true

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Twitter Sentiment Analyzer</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="static/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather&family=Montserrat&family=Sacramento&display=swap" rel="stylesheet">
   </head>
   <body>
@@ -27,7 +27,7 @@
 
     <div class="introduction">
       <h1 class="section-headers">Introduction</h1>
-      <img id="intro-image" src="images/twitter_search_logo.jpg" alt="twitter-search-logo">
+      <img id="intro-image" src="static/twitter_search_logo.jpg" alt="twitter-search-logo">
       <p class="centered-paragraph">
         Vivamus fermentum dui vel odio vestibulum, vel accumsan enim aliquam. Sed dignissim turpis eu suscipit congue. Vestibulum elementum ac quam eu pellentesque. Aliquam suscipit magna nec congue malesuada. Sed odio lectus, lacinia non neque id, congue pulvinar dui. Phasellus tincidunt fringilla lectus, ac varius metus finibus non. Nunc ut iaculis tellus. Mauris eu mattis lacus. Vivamus tempor neque velit, in posuere arcu suscipit et. Ut nec scelerisque nisi. Etiam ut nibh ac sem malesuada fermentum dapibus vitae est. Nam pretium fringilla ex, sit amet ornare velit efficitur ut.
       </p>
@@ -38,22 +38,24 @@
     <!-- Topic Sentiment Analyzer -->
     <div class="topic-analyzer">
       <h1 class="section-headers">Topic Sentiment Analyzer</h1>
-      <img id="analyzer-image" src="images/speech_bubbles.png" alt="speech-bubbles" />
+      <img id="analyzer-image" src="static/speech_bubbles.png" alt="speech-bubbles" />
       <p class="centered-paragraph">
         Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque hendrerit luctus.
       </p>
-      <form class="form-inline" action="/url" method="GET">
+      <form class="form-inline" method="post">
         <label for="hashtag">Hashtag:</label>
-        <input type="text" id="hashtag">
+        <input type="text" id="hashtag" name="hashtag">
         <label for="start-date">Start date:</label>
-        <input type="date" id="start-date">
+        <input type="date" id="start-date" name="start-date">
         <label for="end-date">End date:</label>
-        <input type="date" id="end-date">
+        <input type="date" id="end-date" name="end-date">
       </form>
-      <div style="text-align:center; padding:5px;">
-        <p class="centered-paragraph">Estimated analysis duration:</p>
-        <button class="centered-inline-button">Begin Data Collection & Analysis</button>
-      </div>
+      <form>
+        <div style="text-align:center; padding:5px;">
+          <p class="centered-paragraph" id="duration-text">Estimated analysis duration: </p>
+          <button class="centered-inline-button" onclick="return beginDataCollection()">Begin Data Collection & Analysis</button>
+        </div>
+      </form>
     </div>
 
     <!-- Single-Tweet Classifier -->
@@ -62,7 +64,7 @@
 
     <div class="topic-analyzer">
       <h1 class="section-headers">Single-Tweet Classifier</h1>
-      <img id="single-tweet-image" src="images/tweet_tweet.jpg" alt="tweet-tweet" />
+      <img id="single-tweet-image" src="static/tweet_tweet.jpg" alt="tweet-tweet" />
       <p class="centered-paragraph">
         Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque hendrerit luctus.
       </p>
@@ -119,10 +121,10 @@
     <!-- Project Details -->
 
     <h1 class="section-headers">Project Details</h1>
-    <img id="single-tweet-image" src="images/tweet_tweet.jpg" alt="tweet-tweet" />
+    <img id="single-tweet-image" src="static/tweet_tweet.jpg" alt="tweet-tweet" />
     <p class="centered-paragraph">
       Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque hendrerit luctus.
     </p>
-
   </body>
+  <script type="text/javascript" src="static/index.js"></script>
 </html>

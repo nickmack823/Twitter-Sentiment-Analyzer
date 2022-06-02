@@ -1,8 +1,8 @@
 import csv
 import datetime
-import gc
 import os
 import threading
+import time
 from pathlib import Path
 from queue import Queue
 import pycld2
@@ -26,19 +26,18 @@ print('Classifiers initialized.')
 
 
 class DataProcessingThread(threading.Thread):
-    def __init__(self, main_obj, classifiers):
+    def __init__(self, main_obj):
         threading.Thread.__init__(self)
         self.in_queue = Queue()
         self.main = main_obj
-        self.classifiers = classifiers
 
     def run(self):
         while True:
             scraped_data = self.in_queue.get()  # blocking till something is available in the queue
             print('Classification Thread: Processing data...')
-            data_cleaned = clean_data(scraped_data, self.main)
+            data_cleaned = clean_data(scraped_data)
 
-            sentiments = classify(data_cleaned[0], self.classifiers)
+            sentiments = classify(data_cleaned[0], classifiers)
             print('Classification Thread: Data classified, saving to CSV...')
             interval_final_data = (data_cleaned[0], data_cleaned[1], data_cleaned[2], data_cleaned[3], sentiments)
 
@@ -70,10 +69,9 @@ def to_numeric(tweet_engagement_value):
     return int(num_string)
 
 
-def clean_data(scraped_data, main_obj):
+def clean_data(scraped_data):
     """
     Iterates through input tuple of data lists and cleans them.
-    :param main_obj: instance of Main class
     :param scraped_data: a tuple of lists of scraped tweets, dates, likes, and retweets
     :return: the a tuple with cleaned list elements
     """
@@ -97,11 +95,9 @@ def clean_data(scraped_data, main_obj):
                 continue
         except pycld2.error as e:
             print(f'ERROR {e}: {text}')
-            # main_obj.collect_tweet_data_for_range(resetting=True)
             continue
 
         # Tweet data cleared for cleaning, now normalize date,
-        # try:
         # Append year to date data if searching through current-year tweets (Twitter excludes the year on these)
         if dates_list[n][-4:] not in years_of_twitter:
             date = dates_list[n] + f', {curr_year}'
@@ -125,11 +121,6 @@ def clean_data(scraped_data, main_obj):
         output_data[1].append(date)
         output_data[2].append(likes)
         output_data[3].append(retweets)
-        # except IndexError as e:
-        #     # Reset process and try again, skipping over successfully scraped dates
-        #     print(f'ERROR: {e}')
-        #     main_obj.done_scraping = True
-        #     main_obj.collect_tweet_data_for_range(resetting=True)
 
     print(f'Data cleaned: {non_english_removed} non-English tweet(s) removed, '
           f'{duplicates_removed} duplicate(s) removed, remaining tweets "likes" and "retweets" data normalized.')
@@ -207,8 +198,7 @@ class Main:
         self.date_range = date_range
         self.scraper = Scraper(selected_hashtag)
         self.current_search_year = self.date_range[0][2]
-        self.classifiers = classifiers
-        self.data_thread = DataProcessingThread(self, self.classifiers)
+        self.data_thread = DataProcessingThread(self)
         self.data_thread.daemon = True
         self.done_scraping = False
 
@@ -229,10 +219,7 @@ class Main:
         end = self.date_range[1]
 
         # Begin data processing thread
-        # if not self.thread_running:
-        #     print('Starting thread')
         self.data_thread.start()
-            # self.thread_running = True
 
         print(f'Scraping from {start} to {end}')
         start_day, start_month, start_year = start
@@ -275,7 +262,6 @@ class Main:
             if self.day_tweets_already_collected(current_date):
                 continue
 
-            # try:
             print(f'Scraping from {current_date} to {current_date_next_day}...')
 
             self.scraper.search(current_date, current_date_next_day)
@@ -284,16 +270,6 @@ class Main:
             # Delegate data cleaning, classification, and writing to CSV to a thread to allow scraper to continue on
             self.data_thread.in_queue.put(scraped_data)
 
-            # except TimeoutException as e:
-            #     print(f'ERROR: {e}')
-            #     self.collect_tweet_data_for_range(resetting=True)
-            # except StaleElementReferenceException as e:
-            #     print(f'ERROR: {e}')
-            #     self.collect_tweet_data_for_range(resetting=True)
-            # except NoSuchElementException as e:
-            #     print(f'ERROR: {e}')
-            #     self.collect_tweet_data_for_range(resetting=True)
-
         print(f'Tweets for {start} to {end} scraped, exiting.')
         self.scraper.driver.quit()
         self.done_scraping = True
@@ -301,7 +277,7 @@ class Main:
 
 
 def collect_data(hashtag, date_range):
-    main = Main(hashtag, (('1', 'January', '2021'), ('22', 'May', '2022')))
+    main = Main(hashtag, date_range)
     try:
         main.collect_tweet_data_for_range()
         encountered_error = False
@@ -321,7 +297,6 @@ def collect_data(hashtag, date_range):
     if encountered_error:
         print('Retrying data collection...')
         main.scraper.driver.quit()
-        # gc.collect()
         collect_data(hashtag, date_range)
     else:
         print(f'Data for #{hashtag} during {date_range} collected successfully!')
@@ -334,6 +309,11 @@ if __name__ == "__main__":
     # Scrape data for hashtag and range and return path to relevant CSV file
     # global selected_hashtag, date_range, scraper, data_file_path
 
-    for topic in ['Marvel', 'DonaldTrump', 'vaccines']:
-        collect_data(topic, (('1', 'January', '2021'), ('22', 'May', '2022')))
+    # for topic in ['Marvel', 'DonaldTrump', 'vaccines']:
+    #     collect_data(topic, (('1', 'January', '2021'), ('31', 'May', '2022')))
+
+    t = time.time()
+    collect_data('Republicans', (('1', 'January', '2021'), ('31', 'January', '2021')))
+    e = time.time() - t
+    print(e // 31)
 
