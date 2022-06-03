@@ -1,7 +1,4 @@
-import sys
 import time
-import json
-from os.path import exists
 from pathlib import Path
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
@@ -17,18 +14,29 @@ search_url = 'https://twitter.com/search-advanced'
 root_path = Path('.')
 scraper_dir = 'scraper_files'
 data_dir = 'data_files'
-# chromedriver_path = root_path / scraper_dir / 'chromedriver.exe'
-html_locations_path = root_path / scraper_dir / 'locations.json'
 
-if not exists(html_locations_path):
-    sys.exit('Locations JSON file missing, unable to continue.')
+locations = {
+  "xpaths": {
+      "scroll": "//*[@id=\"layers\"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div",
+      "from_month": "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[16]/div/div[2]/div/div[1]/select",
+      "from_day": "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[16]/div/div[2]/div/div[2]/select",
+      "from_year": "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[16]/div/div[2]/div/div[3]/select",
+      "to_month": "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[16]/div/div[4]/div/div[1]/select",
+      "to_day": "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[16]/div/div[4]/div/div[2]/select",
+      "to_year": "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[16]/div/div[4]/div/div[3]/select",
+      "search_button": "//*[@id=\"layers\"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[1]/div/div/div/div/div/div[3]/div"
+    },
+  "classes": {
+    "dates": "css-4rbku5.css-18t94o4.css-901oao.r-14j79pv.r-1loqt21.r-1q142lx.r-37j5jr.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-3s2u2q.r-qvutc0"
+  }
+}
+
+# if not exists(html_locations_path):
+#     sys.exit('Locations JSON file missing, unable to continue.')
 
 # Get HTML elements' info
-f = open(html_locations_path, 'r')
-locations = json.load(f)
 xpaths = locations['xpaths']
 classes = locations['classes']
-f.close()
 
 
 def scrape_displayed_tweet_elements(tweet_elements, collected_elements):
@@ -36,16 +44,13 @@ def scrape_displayed_tweet_elements(tweet_elements, collected_elements):
     texts, dates, likes, retweets = [], [], [], []
     # Scrape currently available tweets
     for t in tweet_elements:
-        # try:
-            # Scroll to tweet to ensure all of its elements are loaded, avoiding visited tweets
+        # Scroll to tweet to ensure all of its elements are loaded, avoiding visited tweets
         if t not in collected_elements:
             newly_collected.append(t)
             texts.append(t.find_element(By.CSS_SELECTOR, "[data-testid='tweetText']").text)
             dates.append(t.find_element(By.CLASS_NAME, classes['dates']).text)
             likes.append(t.find_element(By.CSS_SELECTOR, "[data-testid='like']").text)
             retweets.append(t.find_element(By.CSS_SELECTOR, "[data-testid='retweet']").text)
-        # except exceptions.StaleElementReferenceException:
-        #     pass
 
     return texts, dates, likes, retweets, newly_collected
 
@@ -53,10 +58,8 @@ def scrape_displayed_tweet_elements(tweet_elements, collected_elements):
 class Scraper:
 
     def __init__(self, hashtag):
-        # self.service = Service(str(chromedriver_path))
         self.hashtag = hashtag
         self.file_path = root_path / data_dir / f"{self.hashtag}.csv"
-        # self.driver = webdriver.Chrome(service=self.service)
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
     def select_date_parameters(self, start_date, end_date):
@@ -130,9 +133,6 @@ class Scraper:
         # Parameters set, now search
         search_button = self.driver.find_element(by=By.XPATH, value=xpaths['search_button'])
         search_button.click()
-        # except TimeoutException as e:
-        #     print(e)
-        #     # self.reset_scraping_process()
 
     def reached_end_of_results(self, tweet_element_height, waited_for_load=False):
         page_height = self.driver.execute_script("return document.body.scrollHeight")
@@ -158,7 +158,6 @@ class Scraper:
         # While there are still results available, scrape them
         while True:
             # Get HTML elements of currently loaded tweets
-            # try:
             tweet_elements = WebDriverWait(self.driver, 10).until \
                 (expected_conditions.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='tweet']")))
             # Store last loaded tweet info for later retrieval (preventing StaleElementException)
@@ -188,9 +187,5 @@ class Scraper:
             if results_ended:
                 print(f'End of results, scraped {len(text_data)} tweets.')
                 break
-            # except TimeoutException as e:
-            #     print(e)
-            # except StaleElementReferenceException as e:
-            #     print(e)
 
         return text_data, date_data, likes_data, retweets_data
