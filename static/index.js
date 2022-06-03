@@ -11,6 +11,10 @@ let currentMonth = (today.getMonth() + 1).toString();
 let currentDay = (today.getDate()).toString();
 let currentYear = (today.getFullYear()).toString();
 
+const analyzerProgess = document.getElementById("analyzer-progress");
+const progressBarAnalyzer = document.getElementById("progress-bar-analyzer");
+let currentProgress = 0;
+
 
 function estimateDuration() {
   let selectedStartDate = startDateObject.value;
@@ -94,10 +98,15 @@ function beginDataCollection() {
     let jsonInput = JSON.stringify(input);
     request.open('POST', '/data-analysis/' + jsonInput);
     request.send();
-    window.alert("Sent input: " + jsonInput);
+    analyzerProgess.style.display = "block";
   }
 }
 
 function advanceProgressBar() {
-  
+  // let id = setInterval(frame, 100);
+  if (currentProgress < 100) {
+    currentProgress++;
+    progressBarAnalyzer.style.width = currentProgress + "%";
+    progressBarAnalyzer.innerHTML = currentProgress + "%";
+  }
 }

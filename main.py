@@ -20,9 +20,7 @@ data_dir = 'data_files'
 if not os.path.exists(root_path / data_dir):
     os.mkdir(root_path / data_dir)
 
-print('Initializing classifiers...')
-classifiers = get_classifiers()
-print('Classifiers initialized.')
+classifiers = None # Will be initialized upon first user request to use them
 
 
 class DataProcessingThread(threading.Thread):

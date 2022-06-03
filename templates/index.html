@@ -55,13 +55,13 @@
         <label for="end-date">End date:</label>
         <input type="date" id="end-date" onchange="estimateDuration()" name="end-date">
       </form>
-      <form>
+      <form onsubmit="return false">
         <div style="text-align:center; padding:5px;">
           <p class="centered-paragraph" id="duration-text">Estimated duration:</p>
           <button class="centered-inline-button" onclick="return beginDataCollection()">Begin Data Collection & Analysis</button>
-          <div id="progress">
-            <div id="progress-bar"></div>
-          </div>
+        </div>
+        <div id="analyzer-progress" onclick="advanceProgressBar()">
+          <div id="progress-bar-analyzer">0%</div>
         </div>
       </form>
     </div>

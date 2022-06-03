@@ -90,6 +90,21 @@ button:hover {
   background-color: royalblue;
 }
 
+#analyzer-progress {
+  display: none;
+  width: 100%;
+  background-color: grey;
+}
+
+#progress-bar-analyzer {
+  width: 0%;
+  height: 30px;
+  background-color: #04AA6D;
+  text-align: center; /* To center it horizontally (if you want) */
+  line-height: 30px; /* To center it vertically */
+  color: white;
+}
+
 /* Single-Tweet Classifier */
 
 #single-tweet-image {
