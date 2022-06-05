@@ -2,15 +2,16 @@ import csv
 import datetime
 import os
 import threading
-import time
 from pathlib import Path
 from queue import Queue
 import pycld2
 from scraper import Scraper
-from sentiment_classifier import classify, get_classifiers
+from sentiment_classifier import classify
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
 from os.path import exists
 import pandas
+import tableaudocumentapi
+import tableauhyperapi
 
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
           'October', 'November', 'December']
@@ -301,17 +302,35 @@ def collect_data(hashtag, date_range):
         return
 
 
-if __name__ == "__main__":
-    # TODO: Receive parameter inputs
+def csv_to_xml(file_path):
+    data = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            data.append(row)
 
-    # Scrape data for hashtag and range and return path to relevant CSV file
-    # global selected_hashtag, date_range, scraper, data_file_path
+    def convert_row(row):
+        xml_string = f"""
+        <Tweet>
+            <tweet>{row[0]}</tweet>
+            <date>{row[1]}</date>
+            <likes>{row[2]}</likes>
+            <retweets>{row[3]}</retweets>
+            <sentiment>{row[4]}</sentiment>
+        </Tweet> """
+        return xml_string
 
-    # for topic in ['Marvel', 'DonaldTrump', 'vaccines']:
-    #     collect_data(topic, (('1', 'January', '2021'), ('31', 'May', '2022')))
+    # with open(f'data_files/{new_xml_name}.tds', 'w', encoding='utf-8') as f:
+    #     f.write('<?xml version="1.0" encoding="UTF-8"?>')
+    #     f.write('\n<tweets>')
+    #     f.write('\n'.join([convert_row(row) for row in data]))
+    #     f.write('\n</tweets>')
+    xml_string = '<?xml version="1.0" encoding="UTF-8"?>'
+    xml_string.join('\n<tweets>')
+    xml_string.join('\n'.join([convert_row(row) for row in data]))
+    xml_string.join('\n</tweets>')
+    return xml_string
 
-    t = time.time()
-    collect_data('Republicans', (('1', 'January', '2021'), ('31', 'January', '2021')))
-    e = time.time() - t
-    print(e // 31)
 
+# source_workbook = tableaudocumentapi.Workbook('SourceWorkbook.twbx')
+new_datasource = tableaudocumentapi.Datasource()

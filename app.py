@@ -1,8 +1,6 @@
 from flask import Flask, render_template
 import json
-
 import main
-from main import Main
 
 app = Flask(__name__)
 

@@ -1,5 +1,4 @@
 import os
-import mysql
 import nltk
 import pandas
 import statistics
@@ -218,7 +217,7 @@ def get_features():
 
 
 def get_classifiers():
-    # Additional classifiers used for testing
+    print('Initializing classifiers...')
     classifiers_to_get = {
         "NaiveBayes": None,
         "BernoulliNB": BernoulliNB(),
@@ -271,6 +270,7 @@ def get_classifiers():
             classifier_path = root_path / joblib_dir / f'{name}.joblib'
             classifiers[name] = get_data(classifier_path)
 
+    print('Classifiers initialized.')
     return classifiers
 
 
@@ -304,7 +304,6 @@ def test_classifiers(classifiers):
 def classify_tweets(tweets, classifiers):
     print('Classifying tweets...')
     analysis_results = []
-    # classifiers = get_classifiers()
 
     n = 0
     for tweet in tweets:
