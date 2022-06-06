@@ -302,35 +302,26 @@ def collect_data(hashtag, date_range):
         return
 
 
-def csv_to_xml(file_path):
-    data = []
-    with open(file_path, 'r', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            data.append(row)
-
-    def convert_row(row):
-        xml_string = f"""
-        <Tweet>
-            <tweet>{row[0]}</tweet>
-            <date>{row[1]}</date>
-            <likes>{row[2]}</likes>
-            <retweets>{row[3]}</retweets>
-            <sentiment>{row[4]}</sentiment>
-        </Tweet> """
-        return xml_string
-
-    # with open(f'data_files/{new_xml_name}.tds', 'w', encoding='utf-8') as f:
-    #     f.write('<?xml version="1.0" encoding="UTF-8"?>')
-    #     f.write('\n<tweets>')
-    #     f.write('\n'.join([convert_row(row) for row in data]))
-    #     f.write('\n</tweets>')
-    xml_string = '<?xml version="1.0" encoding="UTF-8"?>'
-    xml_string.join('\n<tweets>')
-    xml_string.join('\n'.join([convert_row(row) for row in data]))
-    xml_string.join('\n</tweets>')
-    return xml_string
-
-
-# source_workbook = tableaudocumentapi.Workbook('SourceWorkbook.twbx')
-new_datasource = tableaudocumentapi.Datasource()
+# def csv_to_xml(file_path):
+#     data = []
+#     with open(file_path, 'r', encoding='utf-8') as f:
+#         reader = csv.reader(f)
+#         for row in reader:
+#             data.append(row)
+#
+#     def convert_row(row):
+#         xml_string = f"""
+#         <Tweet>
+#             <tweet>{row[0]}</tweet>
+#             <date>{row[1]}</date>
+#             <likes>{row[2]}</likes>
+#             <retweets>{row[3]}</retweets>
+#             <sentiment>{row[4]}</sentiment>
+#         </Tweet> """
+#         return xml_string
+#
+#     xml_string = '<?xml version="1.0" encoding="UTF-8"?>'
+#     xml_string.join('\n<tweets>')
+#     xml_string.join('\n'.join([convert_row(row) for row in data]))
+#     xml_string.join('\n</tweets>')
+#     return xml_string

@@ -1,17 +1,21 @@
 from flask import Flask, render_template
 import json
-import main
+from main import Main, classifiers
+from plotter import Plotter
+import pathlib
 
 app = Flask(__name__)
 
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
           'October', 'November', 'December']
+curr_hashtag = None
 
 
 def segment_date(date):
     day = date[8:] if date[8:][0] != '0' else date[9:]
     month = months[int(date[5:7]) - 1]
     year = date[0:4]
+
     return day, month, year
 
 
@@ -30,6 +34,16 @@ def analyze_data(user_input):
     #     main.classifiers = main.get_classifiers()
     # main_obj = Main(hashtag, date_range)
     # main_obj.collect_tweet_data_for_range()
+    global curr_hashtag
+    curr_hashtag = hashtag
+
+
+@app.route("/data-analysis/results")
+def view_collection_results():
+    p = Plotter('abortion')
+    p.plot_all_days()
+    return render_template(f"abortion_all_days.html")
+
 
 
 # To render static files (static, videos, css files, etc), create 'static' folder and reference things in there
