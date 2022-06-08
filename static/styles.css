@@ -61,6 +61,7 @@
 .form-inline {
   display: flex;
   flex-flow: row wrap;
+  justify-content: center;
   align-items: center;
   width: 50%;
   margin-left: 25%;
@@ -105,6 +106,15 @@ button:hover {
   color: white;
 }
 
+/* Dropdown Button */
+.dropbtn {
+  background-color: #04AA6D;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+}
+
 /* Single-Tweet Classifier */
 
 #single-tweet-image {
@@ -139,4 +149,28 @@ table, th, td {
 #classifier-results-info {
   display: inline;
   margin-left: 10%;
+}
+
+/* Data Viewer */
+
+#viewer-image {
+  width: 20%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 50%;
+}
+
+.data-filter-div {
+  text-align: center;
+}
+
+/* Project Details */
+
+#details-image {
+  width: 15%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 50%;
 }

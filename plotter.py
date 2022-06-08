@@ -1,61 +1,7 @@
 import pathlib
-
 import plotly.express as px
 import pandas as pd
 
-#
-# # Zoom in an a particular month
-# weighted_percentage_df_april2022 = weighted_percentage_df.loc[(weighted_percentage_df['month'] == 'April')
-#                                                               & (weighted_percentage_df['year'] == 2022)]
-# weighted_percentage_df_april2022
-#
-# # Plot month's weighted data
-# plt.figure(figsize=(10,8))
-# plt.xticks(rotation=90)
-# plt.ylim(0, 1)
-# plt.yticks(numpy.arange(0, 1.1, 0.1))
-# plt.xticks(range(1, weighted_percentage_df_april2022['day'].iloc[-1] + 1, 1))
-# plt.xlabel('Day', size=14)
-# plt.ylabel('Percentage of Tweets', size=14)
-# plt.title(f'Abortion Twitter Sentiment (April 2022, Weighted)', size=16)
-# plt.plot(weighted_percentage_df_april2022['day'], weighted_percentage_df_april2022['pos_score_percentage'],
-#          linewidth=1, label='positive', color='green')
-# plt.plot(weighted_percentage_df_april2022['day'], weighted_percentage_df_april2022['neg_score_percentage'],
-#          linewidth=1, label='negative', color='red')
-# plt.legend(title='Tweet Sentiment')
-# plt.show()
-
-# df_2021_weighted.drop({'positive_tweets', 'positive_likes', 'positive_retweets', 'negative_tweets',
-#                        'negative_likes', 'negative_retweets', 'day', 'year', 'total_tweets'}, axis='columns', inplace=True)
-# df_2021_weighted
-#
-# # Get percentages as before
-# df_2021_percentages_weighted = df_2021_weighted.copy()
-# df_2021_percentages_weighted['pos_percentage'] = round(df_2021_percentages_weighted['positive_score'] / df_2021_percentages_weighted['total_score'], 2)
-# df_2021_percentages_weighted['neg_percentage'] = round(df_2021_percentages_weighted['negative_score'] / df_2021_percentages_weighted['total_score'], 2)
-# df_2021_percentages_weighted.drop({'positive_score', 'negative_score'}, axis='columns', inplace=True)
-# df_2021_percentages_weighted
-#
-# # Plot year's data (in terms of weighted percentages)
-# plt.figure(figsize=(10,8))
-# plt.xticks(rotation=90)
-# plt.ylim(0, 1)
-# plt.yticks(numpy.arange(0, 1.1, 0.1))
-# plt.xticks(range(0, 12, 1))
-# plt.xlabel('Month', size=14)
-# plt.ylabel('Percentage of Tweets', size=14)
-# plt.title('Abortion Twitter Sentiment (2021, Percentages, Weighted)', size=16)
-# plt.plot(df_2021_percentages_weighted['month'], df_2021_percentages_weighted['pos_percentage'], linewidth=1, label='positive', color='green')
-# plt.plot(df_2021_percentages_weighted['month'], df_2021_percentages_weighted['neg_percentage'], linewidth=1, label='negative', color='red')
-#
-# # axis2 = plt.gca().twinx()
-# # axis2.plot(df_2021_percentages['month'], df_2021_percentages['total_tweets'], linewidth=1, label='total')
-#
-# plt.legend(title='Tweet Sentiment')
-
-# df = px.data.tips()
-# fig = px.bar(df, x="total_bill", y="day", orientation='h')
-# fig.show()
 
 def create_df_from_csv(file_path):
     df = pd.read_csv(file_path)
@@ -132,7 +78,11 @@ class Plotter:
         plot.update_layout(legend_title_text='Majority')
         plot.for_each_trace(lambda t: t.update(name={"blue": "positive", "red": "negative", '': ''}[t.name]))
 
-        plot.write_html("templates/" + f'{self.hashtag}_all_days.html')
+        file_name = f'{self.hashtag}_all_days.html'
+        html_path = "templates/" + file_name
+        plot.write_html(html_path)
+        return file_name
+        # return plotly.offline.plot(plot, include_plotlyjs=False, output_type="div")
 
     def plot_month(self, month, year):
         month_df = self.df.copy()
@@ -142,7 +92,10 @@ class Plotter:
                       labels={"day": "Day", "value": "Engagement Score"})
         plot.update_layout(legend_title_text='Value', xaxis={'tickmode': 'linear', 'dtick': 1})
 
-        plot.write_html(f'{self.hashtag}_{month}-{year}.html')
+        file_name = f'{self.hashtag}_{month}-{year}.html'
+        html_path = "templates/" + file_name
+        plot.write_html(html_path)
+        return file_name
 
     def plot_year(self, year):
         # Now, let's zoom out to consider a whole year at once (weighted)
@@ -162,5 +115,9 @@ class Plotter:
                       labels={"month": "Month", "value": "Engagement Score"})
         plot.update_layout(legend_title_text='Value')
 
-        plot.write_html(f'{self.hashtag}_{year}.html')
+        file_name = f'{self.hashtag}_{year}.html'
+        html_path = "templates/" + file_name
+        plot.write_html(html_path)
+        return file_name
+        # return plotly.offline.plot(plot, include_plotlyjs=False, output_type="div")
 

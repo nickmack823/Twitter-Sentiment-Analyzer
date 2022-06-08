@@ -10,8 +10,6 @@ from sentiment_classifier import classify
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
 from os.path import exists
 import pandas
-import tableaudocumentapi
-import tableauhyperapi
 
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
           'October', 'November', 'December']
@@ -20,8 +18,6 @@ data_dir = 'data_files'
 
 if not os.path.exists(root_path / data_dir):
     os.mkdir(root_path / data_dir)
-
-classifiers = None # Will be initialized upon first user request to use them
 
 
 class DataProcessingThread(threading.Thread):
@@ -36,11 +32,12 @@ class DataProcessingThread(threading.Thread):
             print('Classification Thread: Processing data...')
             data_cleaned = clean_data(scraped_data)
 
-            sentiments = classify(data_cleaned[0], classifiers)
+            sentiments = classify(data_cleaned[0], self.main.classifiers)
             print('Classification Thread: Data classified, saving to CSV...')
             interval_final_data = (data_cleaned[0], data_cleaned[1], data_cleaned[2], data_cleaned[3], sentiments)
 
             save_to_csv(self.main.data_file_path, interval_final_data)
+            self.main.tweets_scraped += len(data_cleaned[0])
             print('Classification Thread: Data saved to CSV, done.')
             if self.main.done_scraping and self.in_queue.qsize() == 0:
                 print('Classification Thread: Closing classification thread.')
@@ -191,15 +188,20 @@ def get_days_in_month(month, year):
 
 
 class Main:
-    def __init__(self, selected_hashtag, date_range):
+    def __init__(self, selected_hashtag, date_range, classifiers):
         self.selected_hashtag = selected_hashtag
         self.data_file_path = root_path / data_dir / f"{selected_hashtag}.csv"
         self.date_range = date_range
+        self.classifiers = classifiers
+
         self.scraper = Scraper(selected_hashtag)
         self.current_search_year = self.date_range[0][2]
         self.data_thread = DataProcessingThread(self)
         self.data_thread.daemon = True
         self.done_scraping = False
+
+        self.days_completed = 0
+        self.tweets_scraped = 0
 
     def day_tweets_already_collected(self, date):
         if not exists(self.data_file_path):
@@ -259,6 +261,8 @@ class Main:
 
             # Data for this date already collected, go to next day
             if self.day_tweets_already_collected(current_date):
+                self.days_completed += 1
+                yield self.days_completed  # Yield number of days completed to display progress on webpage
                 continue
 
             print(f'Scraping from {current_date} to {current_date_next_day}...')
@@ -269,59 +273,12 @@ class Main:
             # Delegate data cleaning, classification, and writing to CSV to a thread to allow scraper to continue on
             self.data_thread.in_queue.put(scraped_data)
 
+            self.days_completed += 1
+            yield self.days_completed
+
         print(f'Tweets for {start} to {end} scraped, exiting.')
         self.scraper.driver.quit()
         self.done_scraping = True
         return True
 
 
-def collect_data(hashtag, date_range):
-    main = Main(hashtag, date_range)
-    try:
-        main.collect_tweet_data_for_range()
-        encountered_error = False
-    except TimeoutException as e:
-        print(f'ERROR: {e}')
-        encountered_error = True
-    except StaleElementReferenceException as e:
-        print(f'ERROR: {e}')
-        encountered_error = True
-    except NoSuchElementException as e:
-        print(f'ERROR: {e}')
-        encountered_error = True
-    except IndexError as e:
-        print(f'ERROR: {e}')
-        encountered_error = True
-
-    if encountered_error:
-        print('Retrying data collection...')
-        main.scraper.driver.quit()
-        collect_data(hashtag, date_range)
-    else:
-        print(f'Data for #{hashtag} during {date_range} collected successfully!')
-        return
-
-
-# def csv_to_xml(file_path):
-#     data = []
-#     with open(file_path, 'r', encoding='utf-8') as f:
-#         reader = csv.reader(f)
-#         for row in reader:
-#             data.append(row)
-#
-#     def convert_row(row):
-#         xml_string = f"""
-#         <Tweet>
-#             <tweet>{row[0]}</tweet>
-#             <date>{row[1]}</date>
-#             <likes>{row[2]}</likes>
-#             <retweets>{row[3]}</retweets>
-#             <sentiment>{row[4]}</sentiment>
-#         </Tweet> """
-#         return xml_string
-#
-#     xml_string = '<?xml version="1.0" encoding="UTF-8"?>'
-#     xml_string.join('\n<tweets>')
-#     xml_string.join('\n'.join([convert_row(row) for row in data]))
-#     xml_string.join('\n</tweets>')
-#     return xml_string

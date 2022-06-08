@@ -1,5 +1,7 @@
 import time
 from pathlib import Path
+
+import selenium.common.exceptions
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -155,11 +157,17 @@ class Scraper:
         collected_tweets = []
         scrolled_to = []
         tweet_locations, tweet_heights = [], []
+        times_checked_results_ended = 0
         # While there are still results available, scrape them
         while True:
             # Get HTML elements of currently loaded tweets
-            tweet_elements = WebDriverWait(self.driver, 10).until \
-                (expected_conditions.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='tweet']")))
+            try:
+                tweet_elements = WebDriverWait(self.driver, 10).until \
+                    (expected_conditions.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='tweet']")))
+            except selenium.common.exceptions.TimeoutException:
+                print(f'End of results, scraped {len(text_data)} tweets.')
+                break
+
             # Store last loaded tweet info for later retrieval (preventing StaleElementException)
             last_tweet = tweet_elements[-1]
             tweet_locations.append(last_tweet.location)
@@ -177,10 +185,13 @@ class Scraper:
 
             if tweet_locations[-1] in scrolled_to:
                 results_ended = self.reached_end_of_results(tweet_heights[-1])
+                times_checked_results_ended += 1
+                # Looping begins after page with small number of results
+                if times_checked_results_ended >= 500:
+                    break
             else:
                 last_tweet_location = tweet_locations[-1]
-                self.driver.execute_script(
-                    f"window.scrollTo({last_tweet_location['x']}, {last_tweet_location['y']})")
+                self.driver.execute_script(f"window.scrollTo({last_tweet_location['x']}, {last_tweet_location['y']})")
                 scrolled_to.append(last_tweet_location)
                 results_ended = False
 
