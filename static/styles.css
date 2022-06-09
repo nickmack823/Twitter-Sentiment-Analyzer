@@ -138,7 +138,6 @@ table, th, td {
 
 .results-table {
   display: inline-table;
-  background-color: rgb(158, 241, 190);
   text-align: center;
   width: 30%;
   margin-left: 200px;

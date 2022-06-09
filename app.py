@@ -1,10 +1,10 @@
 import os
 from os.path import exists
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import json
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
 import main
-from sentiment_classifier import get_classifiers
+from sentiment_classifier import get_classifiers, classify_tweets
 from apscheduler.schedulers.background import BackgroundScheduler
 from plotter import Plotter
 
@@ -162,32 +162,21 @@ def get_data_files():
     return jsonify(file_list)
 
 
-# @app.route("/download/<string:user_input>", methods=['GET', 'POST'])
-# def download_file(user_input):
-#     file_name = json.loads(user_input) + ".csv"
-#     file_path = Path('.') / "data_files" / file_name
-#
-#     f = open(file_path, encoding='utf-8')
-#     csv = f.read()
-#
-#     # print(csv)
-#     return send_file("./data_files/abortion.csv", mimetype="text/csv", as_attachment=True, download_name=file_name)
-#     # return Response(csv, mimetype="text/csv", headers={"Content-disposition": f"attachment; filename={file_name}"})
-#
-#
-# @app.route("/download", methods=['GET', 'POST'])
-# def send_download_file():
-#     file_name = str(request.get_data())[2:]
-#     file_name = file_name[:-1] + ".csv"
-#     file_path = Path('.') / "data_files" / file_name
-#     with open(file_path, 'r', encoding='utf-8') as f:
-#         r = requests.post("http://httpbin.org/post", files={file_name: f})
-#         print(r.text)
+@app.route("/classify-tweet", methods=['GET', 'POST'])
+def classify_tweet():
+    tweet = str(request.get_data())[2:]
+    tweet = tweet[:-1]
+    global classifiers
+    if classifiers is None:
+        classifiers = get_classifiers()
 
+    results = classify_tweets([tweet], classifiers)
+    results_dict = {}
+    for result in results[0]:
+        results_dict[result[0]] = result[1]
 
-@app.route("/classify-tweet/<string:user_input>", methods=['GET', 'POST'])
-def classify_tweet(user_input):
-    tweet = json.loads(user_input)
+    print(results_dict)
+    return results_dict
 
 
 # To render static files (static, videos, css files, etc), create 'static' folder and reference things in there

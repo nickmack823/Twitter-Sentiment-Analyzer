@@ -311,23 +311,38 @@ function populateDataList() {
 //   let jsonInput = JSON.stringify(file_name);
 //
 //   // Receive returned file
-//   $.ajax({
-//     type: "POST",
-//     url: "/download",
-//     data: file_name,
-//     success: function (file) {
-//       }
-//   });
+  // $.ajax({
+  //   type: "POST",
+  //   url: "/download",
+  //   data: file_name,
+  //   success: function (file) {
+  //     }
+  // });
 // }
 
 // Single-Tweet Classifier
 
 const tweetTextInput = document.getElementById("tweet-textinput");
+const resultsTable = document.getElementById("results-table");
+const classifiedTweet = document.getElementById("classified-tweet");
 
 function classifyTweet() {
   let tweetInput = tweetTextInput.value;
-  let jsonInput = JSON.stringify(tweetInput);
-  const request = new XMLHttpRequest();
-  request.open('POST', '/classify-tweet/' + jsonInput);
-  request.send();
+  $.ajax({
+    type: "POST",
+    url: "/classify-tweet",
+    data: tweetInput,
+    success: function (classifications) {
+        for (const [key, value] of Object.entries(classifications)) {
+          if (value === "pos") {
+            document.getElementById(key).innerHTML = "Positive";
+            document.getElementById(key).style.color = "rgb(0, 255, 41)";
+          } else {
+            document.getElementById(key).innerHTML = "Negative";
+            document.getElementById(key).style.color = "red";
+          }
+        }
+        classifiedTweet.innerHTML = "Showing classifications for: " + "'" + tweetInput + "'";
+      }
+  });
 }
