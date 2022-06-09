@@ -73,21 +73,25 @@ class Plotter:
                 colors.append('')
 
         plot = px.bar(self.df, x="date", y="total_score",
-                     hover_data=hover_data, height=500, title="Daily View", color=colors,
+                     hover_data=hover_data, height=500, title="All Data " + f"(#{self.hashtag})", color=colors,
                      labels={"date": "Date", "total_score": "Total Engagement Score"})
         plot.update_layout(legend_title_text='Majority')
         plot.for_each_trace(lambda t: t.update(name={"blue": "positive", "red": "negative", '': ''}[t.name]))
 
-        file_name = f'{self.hashtag}_all_days.html'
+        # Prevent bars becoming difficult to see as time range increases
+        plot.update_layout(bargap=0.1, bargroupgap = 0,)
+        plot.update_traces(marker_line_width=0, selector=dict(type="bar"))
+
+        file_name = f'{self.hashtag}_all_data.html'
         html_path = "templates/" + file_name
         plot.write_html(html_path)
         return file_name
-        # return plotly.offline.plot(plot, include_plotlyjs=False, output_type="div")
 
     def plot_month(self, month, year):
         month_df = self.df.copy()
         month_df = month_df.loc[(month_df['month'] == month) & (month_df['year'] == year)]
-        plot = px.bar(month_df, x="day", y=["positive_score", "negative_score"], title=f"{month} {year} Data",
+        plot = px.bar(month_df, x="day", y=["positive_score", "negative_score"],
+                      title=f"{month} {year} Data " + f"(#{self.hashtag})",
                       hover_data=hover_data,
                       labels={"day": "Day", "value": "Engagement Score"})
         plot.update_layout(legend_title_text='Value', xaxis={'tickmode': 'linear', 'dtick': 1})
@@ -110,7 +114,8 @@ class Plotter:
         year_df['month'] = pd.Categorical(year_df['month'], categories=months_order, ordered=True)
         year_df.sort_values(by='month', inplace=True)
 
-        plot = px.bar(year_df, x="month", y=["positive_score", "negative_score"], title=f"{year} Data",
+        plot = px.bar(year_df, x="month", y=["positive_score", "negative_score"],
+                      title=f"{year} Data " + f"(#{self.hashtag})",
                       hover_data=hover_data,
                       labels={"month": "Month", "value": "Engagement Score"})
         plot.update_layout(legend_title_text='Value')
@@ -119,5 +124,3 @@ class Plotter:
         html_path = "templates/" + file_name
         plot.write_html(html_path)
         return file_name
-        # return plotly.offline.plot(plot, include_plotlyjs=False, output_type="div")
-

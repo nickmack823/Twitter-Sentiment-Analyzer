@@ -31,6 +31,14 @@
 
 .centered-inline-button {
   display: inline;
+  padding: 10px 20px;
+  background-color: dodgerblue;
+  border: 1px solid #ddd;
+  color: white;
+}
+
+.centered-inline-button:hover {
+  background-color: royalblue;
 }
 
 /* Introduction */
@@ -72,7 +80,7 @@
   font-size: 1.25rem;
 }
 
-.form-inline input {
+.form-inline input, select {
   vertical-align: middle;
   margin: 5px 10px 5px 0px;
   padding: 10px 10px 10px 0px;
@@ -80,16 +88,6 @@
   border: 1px solid #ddd;
 }
 
-button {
-  padding: 10px 20px;
-  background-color: dodgerblue;
-  border: 1px solid #ddd;
-  color: white;
-}
-
-button:hover {
-  background-color: royalblue;
-}
 
 #analyzer-progress {
   display: none;
@@ -164,6 +162,10 @@ table, th, td {
 .data-filter-div {
   text-align: center;
 }
+
+/* #data-list {
+
+} */
 
 /* Project Details */
 

@@ -1,11 +1,23 @@
 /* jshint esversion: 6 */
 
+function toggleButton(button, mode) {
+  if (mode === "on") {
+    button.disabled = false;
+    button.style.backgroundColor = ''; // Resets button color to keep hover functionality
+  } else if (mode === "off") {
+    button.disabled = true;
+    button.style.backgroundColor = "gray";
+  }
+}
+
 // Topic Sentiment Analyzer
 
 const durationTextObject = document.getElementById('duration-text');
+durationTextObject.style.display = "none";
 const hashtagObject = document.getElementById('hashtag');
 const startDateObject = document.getElementById('start-date');
 const endDateObject = document.getElementById('end-date');
+const dataCollectionButton = document.getElementById('data-collection-button');
 
 let avgDayScrapeTime = 50; //40 seconds/day avg
 let today = new Date();
@@ -23,22 +35,43 @@ const progressText = document.getElementById("progress-text");
 let currentProgress = 0;
 let daysToComplete = 0;
 let progressInterval = null;
+let clockInterval = null;
 
-function estimateDuration() {
-  let selectedStartDate = startDateObject.value;
-  let selectedEndDate = endDateObject.value;
-  let d1 = new Date(selectedStartDate);
-  let d2 = new Date(selectedEndDate);
-  let timeDiff = d2.getTime() - d1.getTime();
-  let dayDiff = timeDiff / (1000 * 3600 * 24);
-  daysToComplete = dayDiff;
-  let durationEstimate = dayDiff * avgDayScrapeTime;
-  if (!isNaN(durationEstimate)) {
-    let d = new Date(0);
-    d.setSeconds(durationEstimate); // specify value for SECONDS here
-    let timeString = d.toISOString().substr(11, 8);
-    durationTextObject.innerHTML = "Estimated duration: " + timeString;
-  }
+function secondsToHoursMinutes(value) {
+    let hours = Math.floor(value / 3600);
+    let minutes = Math.floor((value - (hours * 3600)) / 60);
+    let seconds = value - (hours * 3600) - (minutes * 60);
+    let hoursString = "hours";
+    let minutesString = "minutes";
+    let secondsString = "seconds";
+    if (hours < 10 && hours != 0) {
+      hours = "0" + hours;
+      if (hours == 1) {
+        hoursString = "hour";
+      }
+    }
+    if (minutes < 10 && minutes != 0) {
+      minutes = "0" + minutes;
+      if (minutes == 1) {
+        minutesString = "minute";
+      }
+    }
+    if (seconds < 10) {
+      seconds = "0" + seconds;
+      if (seconds == 1) {
+        secondsString = "second";
+      }
+    }
+    return hours + ` ${hoursString}, ` + minutes + ` ${minutesString}, ` + seconds + ` ${secondsString}`;
+}
+
+function clockStart() {
+  durationTextObject.style.display = "block";
+  let secondsPassed = 0;
+  return setInterval(function() { // Return interval to clear it later
+    secondsPassed += 1;
+    durationTextObject.innerHTML = "Time Elapsed: " + secondsToHoursMinutes(secondsPassed);
+  }, 1000);
 }
 
 function inputValid(input) {
@@ -129,6 +162,16 @@ function beginDataCollection() {
     request.open('POST', '/data-analysis/' + jsonInput);
     request.send();
 
+    toggleButton(dataCollectionButton, "off");
+
+    let selectedStartDate = startDateObject.value;
+    let selectedEndDate = endDateObject.value;
+    let d1 = new Date(selectedStartDate);
+    let d2 = new Date(selectedEndDate);
+    let timeDiff = d2.getTime() - d1.getTime();
+    let dayDiff = timeDiff / (1000 * 3600 * 24);
+    daysToComplete = dayDiff;
+
     analyzerProgess.style.display = "block";
     progressBarAnalyzer.style.width = "0%";
     progressText.style.display = "block";
@@ -136,6 +179,7 @@ function beginDataCollection() {
     progressText.innerHTML = "0/" + daysToComplete + " Days Completed";
 
     progressInterval = setInterval(updateProgress, 10000);
+    clockInterval = clockStart();
   }
 }
 
@@ -147,20 +191,19 @@ function advanceProgressBar(progress) {
 
   if (progress === daysToComplete) {
     finalizeProgressBar();
+    clearInterval(progressInterval);
+    clearInterval(clockInterval);
+    toggleButton(dataCollectionButton, "on");
+    const request = new XMLHttpRequest();
+    request.open('POST', '/reset-progress');
+    request.send();
   }
 }
 
 function finalizeProgressBar() {
   analyzerProgess.style.display = "none";
-
   progressText.innerHTML = "Collection finished, see 'Data Viewer' for results.";
   progressText.style.color = "green";
-
-  const request = new XMLHttpRequest();
-  request.open('POST', '/reset-progress');
-  request.send();
-
-  clearInterval(progressInterval);
 }
 
 function updateProgress() { // make ajax request on btn click
@@ -178,15 +221,17 @@ function updateProgress() { // make ajax request on btn click
 const viewAllDataRadio = document.getElementById('view-all-data');
 const viewMonthDataRadio = document.getElementById('view-month-data');
 const viewYearDataRadio = document.getElementById('view-year-data');
-let selectedFilter = 'all';
 
 const dataMonthDiv = document.getElementById('data-month-div');
 const dataMonthInput = document.getElementById('data-month-input');
 const dataYearInput = document.getElementById('data-year-input');
 const dataYearDiv = document.getElementById('data-year-div');
+const checkingDataText = document.getElementById('checking-data-text');
 const viewDataButton = document.getElementById('view-data-button');
-viewDataButton.disabled = true;
-viewDataButton.style.backgroundColor = "gray";
+toggleButton(viewDataButton, "off");
+
+const dataList = document.getElementById('data-list');
+populateDataList();
 
 if (currentMonth.length == 1) {
   dataMonthInput.max = currentYear + "-0" + currentMonth;
@@ -197,41 +242,83 @@ dataYearInput.max = currentYear;
 
 function selectDataFilter() {
   if (viewAllDataRadio.checked) {
-    selectedFilter = 'all';
     dataYearDiv.style.display = "none";
     dataMonthDiv.style.display = "none";
   } else if (viewMonthDataRadio.checked) {
-    selectedFilter = 'month';
     dataMonthDiv.style.display = "block";
     dataYearDiv.style.display = "none";
   } else if (viewYearDataRadio.checked) {
-    selectedFilter = 'year';
     dataYearDiv.style.display = "block";
     dataMonthDiv.style.display = "none";
   }
 }
 
 function setDataFilter() {
-  const request = new XMLHttpRequest();
-  let hashtag = document.getElementById('data-hashtag').value;
+  let hashtag = dataList.options[dataList.selectedIndex].text;
   let data = [];
-  if (selectedFilter === "month") {
+  if (viewMonthDataRadio.checked) {
     data = [hashtag, dataMonthInput.value];
-  } else if (selectedFilter === "year") {
+  } else if (viewYearDataRadio.checked) {
     data = [hashtag, dataYearInput.value];
-  } else if (selectedFilter === "all") {
-    data = [hashtag];
+  } else if (viewAllDataRadio.checked) {
+    data = [hashtag, ''];
   }
   let jsonInput = JSON.stringify({hashtag: data[0], other: data[1]});
+  const request = new XMLHttpRequest();
   request.open('POST', '/get-plot/' + jsonInput);
   request.send();
-  document.getElementById('data-hashtag').value = '';
   dataMonthInput.value = '';
   dataYearInput.value = '';
-  viewDataButton.style.backgroundColor = "dodgerblue";
-  viewDataButton.disabled = false;
-  return false;
+
+  toggleButton(viewDataButton, "off");
+  checkingDataText.style.display = "block";
+  checkingDataText.innerHTML = "Checking if any data for '" + data.toString() + "' is available...";
+  setTimeout(checkDataExists, 5000);
 }
+
+function checkDataExists() { // make ajax request on btn click
+  $.ajax({
+    type: "POST",
+    url: "/check-data-exists", // url to the function
+    success: function (dataExists) {
+      if (dataExists === "true") {
+        checkingDataText.innerHTML = "Data exists, filter set.";
+        toggleButton(viewDataButton, "on");
+      } else if (dataExists === "false") {
+        checkingDataText.innerHTML = "Data for input has not been collected, please try new input or use Topic Sentiment Analyzer.";
+      }
+    },
+  });
+}
+
+function populateDataList() {
+  $.ajax({
+    type: "POST",
+    url: "/get-data-files", // url to the function
+    success: function (fileList) {
+      for (let i = 0; i < fileList.length; i++) {
+          let file_path = fileList[i];
+          let hashtag = file_path.slice(11).replace(".csv", "");
+          dataList.options[dataList.options.length] = new Option(hashtag, file_path);
+      }
+    }
+  });
+}
+
+
+// function downloadDataFile() {
+//   let file_name = dataList.options[dataList.selectedIndex].text;
+//   let jsonInput = JSON.stringify(file_name);
+//
+//   // Receive returned file
+//   $.ajax({
+//     type: "POST",
+//     url: "/download",
+//     data: file_name,
+//     success: function (file) {
+//       }
+//   });
+// }
 
 // Single-Tweet Classifier
 
@@ -240,6 +327,7 @@ const tweetTextInput = document.getElementById("tweet-textinput");
 function classifyTweet() {
   let tweetInput = tweetTextInput.value;
   let jsonInput = JSON.stringify(tweetInput);
+  const request = new XMLHttpRequest();
   request.open('POST', '/classify-tweet/' + jsonInput);
   request.send();
 }

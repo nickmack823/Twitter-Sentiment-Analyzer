@@ -1,10 +1,8 @@
 import os
-
+from os.path import exists
 from flask import Flask, render_template, jsonify
 import json
-
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
-
 import main
 from sentiment_classifier import get_classifiers
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -14,15 +12,17 @@ classifiers = None
 
 
 def clear_templates():
+    print('Performing scheduled deletion of plot templates...')
     for file_name in os.listdir("templates"):
         if not file_name == "index.html":
             os.remove(os.path.join("templates", file_name))
             print(file_name + " removed.")
+    print('Deletion completed.')
 
 
 # Create scheduled job to delete generated plot html files every hour
 scheduler = BackgroundScheduler(daemon=True)
-scheduler.add_job(clear_templates,'interval',minutes=60)
+scheduler.add_job(clear_templates, 'interval', hours=24)
 scheduler.start()
 
 app = Flask(__name__)
@@ -74,8 +74,15 @@ def collect_data(hashtag, date_range):
         collect_data(hashtag, date_range)
     else:
         print(f'Data for #{hashtag} during {date_range} collected successfully!')
+        upload_data_to_drive(hashtag)
         return
 
+
+def upload_data_to_drive(hashtag):
+    api_url = "https://1ag589gyn2.execute-api.us-east-1.amazonaws.com/Stage01"
+
+
+upload_data_to_drive('abortion')
 
 # To render HTML files, there must be a folder called 'templates' with the files in them.
 @app.route("/")
@@ -108,15 +115,14 @@ def reset_progress():
 
 
 @app.route("/get-plot/<string:user_input>", methods=["GET", "POST"])
-def view_collection_results(user_input):
+def get_data_plot(user_input):
     user_input = json.loads(user_input)
-    print(user_input)
     hashtag = user_input['hashtag']
+    other = user_input['other']
+    global plot_html
     try:
         p = Plotter(hashtag)
-        global plot_html
-        if 'other' in user_input.keys():
-            other = user_input['other']
+        if other != '':
             year = int(other[0:4])
             # Month data
             if len(other) == 7:
@@ -126,22 +132,62 @@ def view_collection_results(user_input):
                 plot_html = p.plot_year(year)
         else:
             plot_html = p.plot_all_days()
-    except FileNotFoundError:
-        pass
+    except FileNotFoundError as e:
+        print(e)
+        plot_html = ''
     return ''
+
+
+@app.route("/check-data-exists", methods=['GET', 'POST'])
+def check_data_exists():
+    if exists("templates/" + plot_html) and plot_html != '':
+        return 'true'
+    else:
+        return 'false'
 
 
 @app.route("/plot")
 def render_plot():
-    return render_template(plot_html)
+    if exists("templates/" + plot_html) and plot_html != '':
+        return render_template(plot_html)
+    else:
+        return "ERROR: Data not found."
+
+
+@app.route("/get-data-files", methods=['GET', 'POST'])
+def get_data_files():
+    file_list = []
+    for file_name in os.listdir("data_files"):
+        file_list.append(f"data_files/{file_name}")
+    return jsonify(file_list)
+
+
+# @app.route("/download/<string:user_input>", methods=['GET', 'POST'])
+# def download_file(user_input):
+#     file_name = json.loads(user_input) + ".csv"
+#     file_path = Path('.') / "data_files" / file_name
+#
+#     f = open(file_path, encoding='utf-8')
+#     csv = f.read()
+#
+#     # print(csv)
+#     return send_file("./data_files/abortion.csv", mimetype="text/csv", as_attachment=True, download_name=file_name)
+#     # return Response(csv, mimetype="text/csv", headers={"Content-disposition": f"attachment; filename={file_name}"})
+#
+#
+# @app.route("/download", methods=['GET', 'POST'])
+# def send_download_file():
+#     file_name = str(request.get_data())[2:]
+#     file_name = file_name[:-1] + ".csv"
+#     file_path = Path('.') / "data_files" / file_name
+#     with open(file_path, 'r', encoding='utf-8') as f:
+#         r = requests.post("http://httpbin.org/post", files={file_name: f})
+#         print(r.text)
 
 
 @app.route("/classify-tweet/<string:user_input>", methods=['GET', 'POST'])
 def classify_tweet(user_input):
     tweet = json.loads(user_input)
-
-
-
 
 
 # To render static files (static, videos, css files, etc), create 'static' folder and reference things in there

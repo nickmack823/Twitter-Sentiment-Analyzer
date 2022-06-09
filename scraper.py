@@ -186,7 +186,7 @@ class Scraper:
             if tweet_locations[-1] in scrolled_to:
                 results_ended = self.reached_end_of_results(tweet_heights[-1])
                 times_checked_results_ended += 1
-                # Looping begins after page with small number of results
+                # Looping begins after page with small number of results, break to continue
                 if times_checked_results_ended >= 500:
                     break
             else:
