@@ -19,19 +19,15 @@
   <div class="top-container">
     <h3 class="main-header">Twitter Sentiment Analyzer</h3>
     <h3 class="main-header">by Nicholas MacKinnon</h3>
-    <ul class="main-list">
-      <li class="main-list-item"><a href="#introduction">Introduction</a></li>
-      <li class="main-list-item"><a href="#topic-sentiment-analyzer">Topic Sentiment Analyzer</a></li>
-      <li class="main-list-item"><a href="#single-tweet-classifier">Single-Tweet Classifier</a></li>
-      <li class="main-list-item"><a href="#data-viewer">Data Viewer</a></li>
-      <li class="main-list-item"><a href="#project-details">Project Details</a></li>
-
-      <!-- <li class="main-list-item"><button class="centered-inline-button" >Introduction</button></li>
-      <li class="main-list-item"><button class="centered-inline-button" >Topic Sentiment Analyzer</button></li>
-      <li class="main-list-item"><button class="centered-inline-button" >Single-Tweet Classifier</button></li>
-      <li class="main-list-item"><button class="centered-inline-button" >Data Viewer</button></li>
-      <li class="main-list-item"><button class="centered-inline-button" >Project Details</button></li> -->
-    </ul>
+    <div class="link-div">
+          <ul>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#topic-sentiment-analyzer">Topic Sentiment Analyzer</a></li>
+            <li><a href="#single-tweet-classifier">Single-Tweet Classifier</a></li>
+            <li><a href="#data-viewer">Data Viewer</a></li>
+            <li><a href="#project-details">Project Details</a></li>
+          </ul>
+    </div>
   </div>
 
   <hr />
@@ -42,9 +38,18 @@
     <h1 class="section-headers">Introduction</h1>
     <img id="intro-image" src="static/twitter_search_logo.jpg" alt="twitter-search-logo">
     <p class="centered-paragraph">
-      Vivamus fermentum dui vel odio vestibulum, vel accumsan enim aliquam. Sed dignissim turpis eu suscipit congue. Vestibulum elementum ac quam eu pellentesque. Aliquam suscipit magna nec congue malesuada. Sed odio lectus, lacinia non neque id,
-      congue pulvinar dui. Phasellus tincidunt fringilla lectus, ac varius metus finibus non. Nunc ut iaculis tellus. Mauris eu mattis lacus. Vivamus tempor neque velit, in posuere arcu suscipit et. Ut nec scelerisque nisi. Etiam ut nibh ac sem
-      malesuada fermentum dapibus vitae est. Nam pretium fringilla ex, sit amet ornare velit efficitur ut.
+      Welcome. This is a personal project that I created as part of a plan to learn more about and acquire hands-on experience with
+      data science and web development. The main goals of this project are as follows:
+      <ul class="left-list">
+        <li>First, to collect and process data from Twitter's "advanced search" feature.</li>
+        <li>Next, to classify the resulting data in an attempt to approximate the overall sentiments towards a given hashtag over a period of time.</li>
+        <li>Then, to explore these results and display them in an easily understood format.</li>
+        <li>Finally, to create this webpage, which acts as a simplified user interface for applying and exploring these functionalities.</li>
+      </ul>
+    </p>
+    <p class="centered-paragraph">
+      To see these in action, refer to the sections below. To learn more about the details of this project,
+      visit <a href="#project-details">Project Details</a>.
     </p>
   </div>
 
@@ -55,30 +60,38 @@
     <h1 class="section-headers">Topic Sentiment Analyzer</h1>
     <img id="analyzer-image" src="static/speech_bubbles.png" alt="speech-bubbles" />
     <p class="centered-paragraph">
-      Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque
-      hendrerit luctus.
+      This is the Topic Sentiment Analyzer, a tool that uses
+      <a href="https://www.geeksforgeeks.org/what-is-web-scraping-and-how-to-use-it/" target="_blank" rel="noopener noreferrer">web scraping</a>
+      to collect the text, date, number of likes, and number of retweets of tweets that include the input hashtag and were
+      posted during the input date range. After the collection process has completed, each tweet is automatically analyzed using
+      <a href="https://tinyurl.com/r7459xms" target="_blank" rel="noopener noreferrer">sentiment classification</a> to estimate
+      whether the sentiment of the tweet is positive or negative. After this, the data is saved and made available for viewing
+      using the <a href="#data-viewer">Data Viewer</a>.
     </p>
     <form class="form-inline" method="post">
       <label for="hashtag">Hashtag:</label>
       <input type="text" id="hashtag" name="hashtag">
       <label for="start-date">Start date:</label>
-      <input type="date" id="start-date" min='2008-01-01' onchange="estimateDuration()" name="start-date">
+      <input type="date" id="start-date" min='2008-01-01' name="start-date">
       <label for="end-date">End date:</label>
-      <input type="date" id="end-date" min='2008-01-01' onchange="estimateDuration()" name="end-date">
+      <input type="date" id="end-date" min='2008-01-01' name="end-date">
     </form>
+    <p class="centered-paragraph">
+      To use, input a hashtag (<em>without</em> the '#' symbol) that you wish to collect data for, as well as a date range to specify
+      the period of time, and click the button below.
+      <br /><em>(Note: Depending on the popularity of the given hashtag, data collection can last several hours for date ranges of
+      several months or longer.)</em>
+    </p>
     <form onsubmit="return false">
       <div style="text-align:center; padding:5px;">
-        <p class="centered-paragraph" id="duration-text">Estimated duration:</p>
-        <button class="centered-inline-button" onclick="return beginDataCollection()">Begin Data Collection & Analysis</button>
+        <p class="centered-paragraph" id="duration-text">Time Elapsed:</p>
+        <button class="centered-inline-button" id='data-collection-button' onclick="beginDataCollection()">Begin Data Collection & Analysis</button>
       </div>
       <p class="centered-paragraph" id="progress-text" style="display:none;">Loading Progress...</p>
       <div id="analyzer-progress">
         <div id="progress-bar-analyzer"></div>
       </div>
     </form>
-    <!-- <p>
-      <button class="centered-inline-button" onclick="return viewData()">View Data</button>
-    </p> -->
   </div>
 
   <!-- Single-Tweet Classifier -->
@@ -89,10 +102,11 @@
     <h1 class="section-headers">Single-Tweet Classifier</h1>
     <img id="single-tweet-image" src="static/tweet_tweet.jpg" alt="tweet-tweet" />
     <p class="centered-paragraph">
-      Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque
-      hendrerit luctus.
+      The purpose of this Single-Tweet Classifier is to provide some insight into the sentiment classification process that I used.
+      Here, you can copy and paste the text of a tweet into the input box, click 'Classify', and the results of the classification
+      for that text will be displayed.
     </p>
-    <form class="form-inline">
+    <form class="form-inline" onsubmit="return false">
       <input type="text" id="tweet-textinput" style="width:75%;margin-right:auto;">
       <button class="centered-inline-button" onclick="classifyTweet()">Classify</button>
     </form>
@@ -100,42 +114,51 @@
     <!-- Classification Results Table -->
     <h2 style="text-align: center;">Classification Results</h2>
     <div class="classification-results-div">
+      <p class="centered-paragraph" id="classified-tweet"></p>
       <table class="results-table">
         <tr>
           <th class="results-header">Classifier</th>
           <th class="results-header">Sentiment Prediction</th>
         </tr>
         <tr>
-          <td>Classifier 1</td>
-          <td>Prediction 1</td>
+          <td><a href="https://towardsdatascience.com/naive-bayes-classifier-81d512f50a7c" target="_blank" rel="noopener noreferrer">Naive Bayes</a></td>
+          <td id="NaiveBayes">-</td>
         </tr>
         <tr>
-          <td>Classifier 2</td>
-          <td>Prediction 2</td>
+          <td><a href="https://medium.com/@nansha3120/bernoulli-naive-bayes-and-its-implementation-cca33ccb8d2e" target="_blank" rel="noopener noreferrer">Bernoulli Naive Bayes</a></td>
+          <td id="BernoulliNB">-</td>
         </tr>
         <tr>
-          <td>Classifier 3</td>
-          <td>Prediction 3</td>
+          <td><a href="https://www.geeksforgeeks.org/complement-naive-bayes-cnb-algorithm/" target="_blank" rel="noopener noreferrer">Complement Naive Bayes</a></td>
+          <td id="ComplementNB">-</td>
         </tr>
         <tr>
-          <td>Classifier 4</td>
-          <td>Prediction 4</td>
+          <td><a href="https://www.mygreatlearning.com/blog/multinomial-naive-bayes-explained/" target="_blank" rel="noopener noreferrer">Multinomial Naive Bayes</a></td>
+          <td id="MultinomialNB">-</td>
         </tr>
         <tr>
-          <td>Classifier 5</td>
-          <td>Prediction 5</td>
+          <td><a href="https://www.analyticsvidhya.com/blog/2018/03/introduction-k-neighbours-algorithm-clustering/" target="_blank" rel="noopener noreferrer">K-Nearest Neighbors</a></td>
+          <td id="KNeighborsClassifier">-</td>
         </tr>
         <tr>
-          <td>Classifier 6</td>
-          <td>Prediction 6</td>
+          <td><a href="https://towardsdatascience.com/decision-tree-classifier-explained-in-real-life-picking-a-vacation-destination-6226b2b60575" target="_blank" rel="noopener noreferrer">Decision Tree</a></td>
+          <td id="DecisionTreeClassifier">-</td>
         </tr>
         <tr>
-          <td>Classifier 7</td>
-          <td>Prediction 7</td>
+          <td><a href="https://www.geeksforgeeks.org/random-forest-classifier-using-scikit-learn/" target="_blank" rel="noopener noreferrer">Random Forest</a></td>
+          <td id="RandomForestClassifier">-</td>
+        </tr>
+        <tr>
+          <td><a href="https://towardsdatascience.com/logistic-regression-explained-9ee73cede081" target="_blank" rel="noopener noreferrer">Logistic Regression</a></td>
+          <td id="LogisticRegression">-</td>
+        </tr>
+        <tr>
+          <td><a href="https://medium.com/@AI_with_Kain/understanding-of-multilayer-perceptron-mlp-8f179c4a135f" target="_blank" rel="noopener noreferrer">Multi-Layer Perceptron</a></td>
+          <td id="MLPClassifier">-</td>
         </tr>
       </table>
-      <p id="classifier-results-info">
-        CLASSIFIER INFO HERE
+      <p class="centered-paragraph">
+        <b>Final Classification: <span id="classification-majority">-</span> </b>
       </p>
     </div>
   </div>
@@ -147,8 +170,14 @@
     <h1 class="section-headers">Data Viewer</h1>
     <img id="viewer-image" src="static/metrics.jpg" alt="metrics" />
     <p class="centered-paragraph">
-      Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque
-      hendrerit luctus.
+      This is the Data Viewer. Here, you can view data that has been previously collected using the
+      <a href="#topic-sentiment-analyzer">Topic Sentiment Analyzer</a>.
+    </p>
+    <p class="centered-paragraph">
+      To use, select a hashtag from the list of hashtags for which data currently exists in storage. Then, if "View Month Data" or
+      "View Year Data" is selected, input a date range for filtering. Once all inputs have been filled, click 'Set Filter' and
+      it will be determined if data exists that matches your input. If so, click 'View Data' to view a display of the data.
+      <br />(Note: The 'Engagement Score' for each tweet is calculated as the sum of the tweet's number of likes and number of retweets.)
     </p>
     <form class="form-inline">
       <input type="radio" id="view-all-data" name="data-to-show" value="all" checked="checked" onclick="selectDataFilter()">
@@ -158,9 +187,9 @@
       <input type="radio" id="view-year-data" name="data-to-show" value="year" onclick="selectDataFilter()">
       <label for="year">View Year Data</label>
     </form>
-    <form class="form-inline">
+    <form class="form-inline" onsubmit="return false">
       <label for="data-hashtag">Hashtag:</label>
-      <input type="text" id="data-hashtag" name="data-hashtag">
+      <select name="data" id="data-list" style="display:inline;"></select>
       <div class="data-input-div" id="data-month-div" style="display:none">
         <label for="data-month-input">Month:</label>
         <input type="month" id="data-month-input" min="2008-01" />
@@ -169,10 +198,11 @@
         <label for="data-year">Year:</label>
         <input type="number" id="data-year-input" name="data-year" min="2008" step="1" value="2022" />
       </div>
-      <button class="centered-inline-button" onclick="return setDataFilter()">Set Filter</button>
+      <button class="centered-inline-button" onclick="setDataFilter()">Set Filter</button>
     </form>
     <form onsubmit="return false">
       <div style="text-align:center; padding:5px;">
+        <p class="centered-paragraph" id="checking-data-text" style="display:none;"></p>
         <button id="view-data-button" class="centered-inline-button" onclick="window.open('/plot','_blank')">View Data</button>
       </div>
     </form>
@@ -185,9 +215,57 @@
   <h1 class="section-headers" id="project-details">Project Details</h1>
   <img id="details-image" src="static/info.jpg" alt="info-icon" />
   <p class="centered-paragraph">
-    Quisque sodales mi ac malesuada mollis. Donec consectetur elit lectus, a imperdiet augue maximus maximus. Donec dictum mauris id orci semper faucibus. Curabitur dapibus vel leo et placerat. Ut a ex lectus. Etiam vel turpis varius neque hendrerit
-    luctus.
+    Thanks for checking out my project. Here, I provide more details relating to each step involved in this project, including
+    data collection, processing, classification, and graphing.
+    <br />(Coding languages used: Python, HTML, CSS, JavaScript)
   </p>
+  <h2>Data Collection & Processing</h2>
+  <h3>Collection</h3>
+  <p class="left-paragraph">
+    To collect data for this project, I utilized
+    <a href="https://selenium-python.readthedocs.io/" target="_blank" rel="noopener noreferrer">Selenium</a>
+    to scrape publicly available data from Twitter's
+    <a href="https://twitter.com/search-advanced" target="_blank" rel="noopener noreferrer">advanced search</a> feature.
+    The scraped data includes: the text content of tweets, the date the tweets were posted, the number of likes they had, and the
+    number of retweets they had.
+  </p>
+  <h3>Processing</h3>
+  <p class="left-paragraph">
+    Once the tweet data for a given day has been collected, a separate thread begins the process of cleaning and classifying each
+    tweet from that day. The data cleaning process is as follows:
+    <ul class="left-list">
+      <li>Removing 'newline' characters from tweet texts.</li>
+      <li>Removing non-English tweets (using <a href="https://pypi.org/project/pycld2/"  target="_blank" rel="noopener noreferrer">pycld2</a>).</li>
+      <li>Removing duplicate tweets to exclude spam and Twitter bots.</li>
+      <li>Appending the current year to the dates of tweets made this year (Twitter excludes year values for these).</li>
+      <li>Replacing the otherwise empty likes/retweets value with '0' for tweets that have none.</li>
+    </ul>
+  </p>
+  <h2>Sentiment Classification</h2>
+  <p class="left-paragraph">
+    To predict the sentiments of collected tweets, I use classifiers that were trained as follows. First, two prerequisite resources were collected:
+    <a href="https://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html" target="_blank" rel="noopener noreferrer">Hu and Liu's Opinion Lexicon</a>
+    for detecting 'positive' and 'negative' words, and the
+    <a href="http://help.sentiment140.com/for-students" target="_blank" rel="noopener noreferrer">Sentiment140 training data</a>,
+    a dataset of 1.4 million tweets that have been manually classified as being either "positive" or "negative".
+    <br /><br />Using the Opinion Lexicon and
+    <a href="https://medium.com/ro-codes/nlp-how-does-nltk-vader-calculate-sentiment-6c32d0f5046b" target="_blank" rel="noopener noreferrer">NLTK's 'Vader'</a>,
+    a set of features (means of Vader's compound, negative, and positive scores, and number of positive and negative words from the Opinion Lexicon)
+    was created with which to train the classifiers. The classifiers (created using
+    <a href="https://scikit-learn.org/stable/" target="_blank" rel="noopener noreferrer">scikit-learn</a>) were trained on
+    70% of the Sentiment140 training tweets and tested on the remaining 30%. The list of classifiers and their accuracies can be seen in the
+    <a href="single-tweet-classifier">Single-Tweet Classifier</a> section.
+    For each tweet, each classifier produced a sentiment prediction. The majority of these sentiments (either "positive" or "negative") was
+    then used as the final sentiment estimate.
+    After classifying each tweet for the day, the data is saved to a CSV file that include each tweet's text, date, likes, retweets, and sentiment prediction.
+  </p>
+  <hr />
+  <div class="link-div">
+    <ul>
+      <li><a href="https://github.com/nickmack823/Twitter-Sentiment-Analyzer" target="_blank" rel="noopener noreferrer">View on GitHub</a></li>
+    </ul>
+    <p class="copyright">Nicholas MacKinnon © 2022</p>
+  </div>
 </body>
 <script type="text/javascript" src="static/index.js"></script>
 

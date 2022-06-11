@@ -20,6 +20,7 @@ def clear_templates():
     print('Deletion completed.')
 
 
+clear_templates()
 # Create scheduled job to delete generated plot html files every hour
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.add_job(clear_templates, 'interval', hours=24)
@@ -114,9 +115,11 @@ def reset_progress():
     return ''
 
 
-@app.route("/get-plot/<string:user_input>", methods=["GET", "POST"])
-def get_data_plot(user_input):
-    user_input = json.loads(user_input)
+@app.route("/get-plot", methods=["GET", "POST"])
+def get_data_plot():
+    print("GET")
+    user_input = request.get_json()
+    print(user_input)
     hashtag = user_input['hashtag']
     other = user_input['other']
     global plot_html
@@ -134,16 +137,12 @@ def get_data_plot(user_input):
             plot_html = p.plot_all_days()
     except FileNotFoundError as e:
         print(e)
-        plot_html = ''
-    return ''
+        plot_html = None
 
-
-@app.route("/check-data-exists", methods=['GET', 'POST'])
-def check_data_exists():
-    if exists("templates/" + plot_html) and plot_html != '':
-        return 'true'
-    else:
+    if plot_html is None:
         return 'false'
+    elif exists("templates/" + plot_html):
+        return 'true'
 
 
 @app.route("/plot")
@@ -175,7 +174,6 @@ def classify_tweet():
     for result in results[0]:
         results_dict[result[0]] = result[1]
 
-    print(results_dict)
     return results_dict
 
 

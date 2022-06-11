@@ -108,16 +108,16 @@ def get_data(file_path):
 
 def get_sentiment140_training_tweets():
     print('Getting sentiment140 data')
-    sentiment140_df = pandas.read_csv('sentiment140_training_data_tweets.csv', encoding='ISO-8859-1')
+    # sentiment140_df = pandas.read_csv('sentiment140_training_data_tweets.csv', encoding='ISO-8859-1')
 
     # Isolate sentiment values and tweet texts by dropping unneeded columns
-    for i in range(4):
-        sentiment140_df.drop(sentiment140_df.columns[1], axis=1, inplace=True)
+    # for i in range(4):
+    #     sentiment140_df.drop(sentiment140_df.columns[1], axis=1, inplace=True)
 
     # Add headers to dataframe and create more workable version of training data file
-    print('Creating modified CSV file of data')
-    headers = ['sentiment', 'tweet']
-    sentiment140_df.to_csv('sentiment140_training_data_modified.csv', header=headers, index=False)
+    # print('Creating modified CSV file of data')
+    # headers = ['sentiment', 'tweet']
+    # sentiment140_df.to_csv('sentiment140_training_data_modified.csv', header=headers, index=False)
     training_data = pandas.read_csv('sentiment140_training_data_modified.csv')
 
     # Get positive- and negative-tagged tweets
@@ -130,87 +130,25 @@ def get_sentiment140_training_tweets():
     return positive_tweets, negative_tweets
 
 
-def get_training_tweets():
-    # If positive and negative tweet data is already pickled, retrieve it. If not, get and pickle it
-    if exists(positive_tweets_path) and exists(negative_tweets_path):
-        positive_tweets = get_data(positive_tweets_path)
-        negative_tweets = get_data(negative_tweets_path)
-    else:
-        print('Pos/neg tweets file does not exist, getting data and storing')
-        positive_tweets, negative_tweets = get_sentiment140_training_tweets()
-        store_data(positive_tweets_path, positive_tweets)
-        store_data(negative_tweets_path, negative_tweets)
-
-    return positive_tweets, negative_tweets
-
-
-# def get_bigram_finders():
-#     stopwords, pos_tweets, neg_tweets = None, None, None
-#     if exists(pos_bigram_path):
-#         positive_bigram_finder = get_data(pos_bigram_path)
-#     else:
-#         stopwords = nltk.corpus.stopwords.words("english")
-#         # Add names to unwanted words list, they don't help much for sentiment
-#         stopwords.extend([w.lower() for w in nltk.corpus.names.words()])
-#         pos_tweets, neg_tweets = get_training_tweets()
-#         pos_tokenized_lists = [nltk.word_tokenize(tweet) for tweet in pos_tweets]
-#         pos_tokenized_words = []
-#         for word_list in pos_tokenized_lists:
-#             for word in word_list:
-#                 pos_tokenized_words.append(word)
-#
-#         positive_bigram_finder = nltk.collocations.BigramCollocationFinder.from_words([
-#             w for w in pos_tokenized_words if w.isalpha() and w not in stopwords])
-#
-#         store_data(pos_bigram_path, positive_bigram_finder)
-#     if exists(neg_bigram_path):
-#         negative_bigram_finder = get_data(neg_bigram_path)
-#     else:
-#         neg_tokenized_lists = [nltk.word_tokenize(tweet) for tweet in neg_tweets]
-#         neg_tokenized_words = []
-#         for word_list in neg_tokenized_lists:
-#             for word in word_list:
-#                 neg_tokenized_words.append(word)
-#
-#         negative_bigram_finder = nltk.collocations.BigramCollocationFinder.from_words([
-#             w for w in neg_tokenized_words if w.isalpha() and w not in stopwords])
-#
-#         store_data(neg_bigram_path, negative_bigram_finder)
-#
-#     return positive_bigram_finder, negative_bigram_finder
-
-
 def get_features_from_tweets(positive_tweets, negative_tweets):
+    print("Getting features from tweets...")
     pos_features, neg_features = [], []
-    n1, n2 = 0, 0
-    l1, l2 = len(positive_tweets), len(negative_tweets)
 
     # Getting positive features
     for t in positive_tweets:
         pos_features.append((extract_features(t), "pos"))
-        n1 += 1
-        print(f'{n1}/{l1} complete')
 
     # Getting negative features
     for t in negative_tweets:
         neg_features.append((extract_features(t), "neg"))
-        n2 += 1
-        print(f'{n2}/{l2} complete')
 
+    print('Features acquired.')
     return pos_features, neg_features
 
 
 def get_features():
-    # Check if positive features have already been collected for the training data
-    if exists(positive_features_path) and exists(negative_features_path):
-        positive_features = get_data(positive_features_path)
-        negative_features = get_data(negative_features_path)
-    # If not, collect the features and store them to a pickled file
-    else:
-        positive_tweets, negative_tweets = get_training_tweets()
-        positive_features, negative_features = get_features_from_tweets(positive_tweets, negative_tweets)
-        store_data(positive_features_path, positive_features)
-        store_data(negative_features_path, negative_features)
+    positive_tweets, negative_tweets = get_sentiment140_training_tweets()
+    positive_features, negative_features = get_features_from_tweets(positive_tweets, negative_tweets)
 
     all_features = positive_features + negative_features
     return all_features
@@ -236,6 +174,7 @@ def get_classifiers():
     for name in classifiers_to_get.keys():
         classifier_path = root_path / joblib_dir / f'{name}.joblib'
         if not exists(classifier_path):
+            print(classifier_path)
             need_features = True
             break
 
@@ -299,6 +238,7 @@ def test_classifiers(classifiers):
     accuracies.append(test_details)
     store_data(accuracies_path, accuracies)
     print(accuracies)
+    return accuracies
 
 
 def classify_tweets(tweets, classifiers):
@@ -315,7 +255,6 @@ def classify_tweets(tweets, classifiers):
 
         analysis_results.append(individual_results)
         n += 1
-        # print(f'{n}/{len(tweets)} tweets classified.')
 
     return analysis_results
 
@@ -344,3 +283,9 @@ def get_majority_sentiments(results):
 def classify(tweets, classifiers):
     classifications = classify_tweets(tweets, classifiers)
     return get_majority_sentiments(classifications)
+
+
+
+b = test_classifiers(get_classifiers())
+store_data(accuracies_path, b)
+print(b)

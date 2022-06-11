@@ -5,6 +5,7 @@
   text-align: center;
   background-color: cyan;
   padding: 100px;
+  border: solid;
 }
 
 .main-header {
@@ -17,11 +18,6 @@
   list-style-type: none;
   padding-top: 20px;
   font-size: 1.25rem;
-}
-
-.main-list-item {
-  display: inline;
-  padding-right: 15px;
 }
 
 .section-headers {
@@ -41,14 +37,26 @@
   background-color: royalblue;
 }
 
-/* Introduction */
-
-
 .centered-paragraph {
   text-align: center;
   line-height: 2;
   font-size: 1.25rem;
 }
+
+.left-list {
+  text-align: left;
+  line-height: 2;
+  font-size: 1.25rem;
+}
+
+.left-paragraph {
+  text-align: left;
+  line-height: 2;
+  font-size: 1.25rem;
+}
+
+/* Introduction */
+
 
 #intro-image {
   width: 25%;
@@ -104,15 +112,6 @@
   color: white;
 }
 
-/* Dropdown Button */
-.dropbtn {
-  background-color: #04AA6D;
-  color: white;
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-}
-
 /* Single-Tweet Classifier */
 
 #single-tweet-image {
@@ -124,6 +123,13 @@
 }
 
 /* Classification Results Table */
+
+#classification-results-div {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+}
 
 table, th, td {
   border: 1px solid black;
@@ -140,7 +146,7 @@ table, th, td {
   display: inline-table;
   text-align: center;
   width: 30%;
-  margin-left: 200px;
+  margin-left: 35%;
 }
 
 #classifier-results-info {
@@ -175,3 +181,43 @@ table, th, td {
   margin-right: auto;
   border-radius: 50%;
 }
+
+/* Footer */
+.link-div {
+  padding:40px 0;
+  color: black;
+}
+
+.link-div ul {
+  padding:0;
+  list-style:none;
+  text-align:center;
+  font-size:1.5rem;
+  line-height:1.6;
+  margin-bottom:0;
+}
+
+.link-div li {
+  display: inline;
+  padding: 0 10px;
+}
+
+.link-div ul a {
+  color: inherit;
+  /* text-decoration: none; */
+  opacity:0.8;
+}
+
+.link-div ul a:hover {
+  opacity:1;
+}
+
+.link-div .copyright {
+  margin-top:15px;
+  text-align:center;
+  font-size:13px;
+  color:#aaa;
+  margin-bottom:0;
+}
+
+/* Credit to https://epicbootstrap.com/snippets/footer-basic */

@@ -75,7 +75,10 @@ function clockStart() {
 }
 
 function inputValid(input) {
-  // document.write(input);
+  if (input[0].includes("#")) {
+    window.alert("Please remove the '#' symbol from your hashtag input.");
+    return false;
+  }
   if (input[0] === '' || input[1] === '' || input[2] === '') {
     window.alert('Please fill out all fields for sentiment analyzer.');
     return false;
@@ -216,6 +219,45 @@ function updateProgress() { // make ajax request on btn click
   });
 }
 
+// Single-Tweet Classifier
+
+const tweetTextInput = document.getElementById("tweet-textinput");
+const resultsTable = document.getElementById("results-table");
+const classifiedTweet = document.getElementById("classified-tweet");
+const classificationMajority = document.getElementById("classification-majority");
+
+function classifyTweet() {
+  let tweetInput = tweetTextInput.value;
+  $.ajax({
+    type: "POST",
+    url: "/classify-tweet",
+    data: tweetInput,
+    success: function (classifications) {
+      let pos = 0;
+      let neg = 0;
+      for (const [key, value] of Object.entries(classifications)) {
+        if (value === "pos") {
+          document.getElementById(key).innerHTML = "Positive";
+          document.getElementById(key).style.color = "rgb(0, 255, 41)";
+          pos += 1;
+        } else {
+          document.getElementById(key).innerHTML = "Negative";
+          document.getElementById(key).style.color = "red";
+          neg += 1;
+        }
+      }
+      classifiedTweet.innerHTML = "Showing classifications for: " + "'" + tweetInput + "'";
+      if (pos > neg) {
+        classificationMajority.innerHTML = "Positive";
+        classificationMajority.style.color = "rgb(0, 255, 41)";
+      } else {
+        classificationMajority.innerHTML = "Negative";
+        classificationMajority.style.color = "red";
+      }
+    }
+  });
+}
+
 // Data Viewer
 
 const viewAllDataRadio = document.getElementById('view-all-data');
@@ -264,27 +306,23 @@ function setDataFilter() {
     data = [hashtag, ''];
   }
   let jsonInput = JSON.stringify({hashtag: data[0], other: data[1]});
-  const request = new XMLHttpRequest();
-  request.open('POST', '/get-plot/' + jsonInput);
-  request.send();
   dataMonthInput.value = '';
   dataYearInput.value = '';
-
   toggleButton(viewDataButton, "off");
   checkingDataText.style.display = "block";
   checkingDataText.innerHTML = "Checking if any data for '" + data.toString() + "' is available...";
-  setTimeout(checkDataExists, 5000);
-}
 
-function checkDataExists() { // make ajax request on btn click
   $.ajax({
     type: "POST",
-    url: "/check-data-exists", // url to the function
+    url: "/get-plot",
+    data: jsonInput,
+    dataType: 'json',
+    contentType: "application/json",
     success: function (dataExists) {
-      if (dataExists === "true") {
+      if (dataExists) {
         checkingDataText.innerHTML = "Data exists, filter set.";
         toggleButton(viewDataButton, "on");
-      } else if (dataExists === "false") {
+      } else {
         checkingDataText.innerHTML = "Data for input has not been collected, please try new input or use Topic Sentiment Analyzer.";
       }
     },
@@ -302,47 +340,5 @@ function populateDataList() {
           dataList.options[dataList.options.length] = new Option(hashtag, file_path);
       }
     }
-  });
-}
-
-
-// function downloadDataFile() {
-//   let file_name = dataList.options[dataList.selectedIndex].text;
-//   let jsonInput = JSON.stringify(file_name);
-//
-//   // Receive returned file
-  // $.ajax({
-  //   type: "POST",
-  //   url: "/download",
-  //   data: file_name,
-  //   success: function (file) {
-  //     }
-  // });
-// }
-
-// Single-Tweet Classifier
-
-const tweetTextInput = document.getElementById("tweet-textinput");
-const resultsTable = document.getElementById("results-table");
-const classifiedTweet = document.getElementById("classified-tweet");
-
-function classifyTweet() {
-  let tweetInput = tweetTextInput.value;
-  $.ajax({
-    type: "POST",
-    url: "/classify-tweet",
-    data: tweetInput,
-    success: function (classifications) {
-        for (const [key, value] of Object.entries(classifications)) {
-          if (value === "pos") {
-            document.getElementById(key).innerHTML = "Positive";
-            document.getElementById(key).style.color = "rgb(0, 255, 41)";
-          } else {
-            document.getElementById(key).innerHTML = "Negative";
-            document.getElementById(key).style.color = "red";
-          }
-        }
-        classifiedTweet.innerHTML = "Showing classifications for: " + "'" + tweetInput + "'";
-      }
   });
 }

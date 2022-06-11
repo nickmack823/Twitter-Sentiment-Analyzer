@@ -90,6 +90,11 @@ class Plotter:
     def plot_month(self, month, year):
         month_df = self.df.copy()
         month_df = month_df.loc[(month_df['month'] == month) & (month_df['year'] == year)]
+
+        # If no data found, return
+        if len(month_df) == 0:
+            return None
+
         plot = px.bar(month_df, x="day", y=["positive_score", "negative_score"],
                       title=f"{month} {year} Data " + f"(#{self.hashtag})",
                       hover_data=hover_data,
@@ -99,12 +104,19 @@ class Plotter:
         file_name = f'{self.hashtag}_{month}-{year}.html'
         html_path = "templates/" + file_name
         plot.write_html(html_path)
+
         return file_name
 
     def plot_year(self, year):
         # Now, let's zoom out to consider a whole year at once (weighted)
         year_df = self.df.copy()
         year_df = year_df.loc[(year_df['year'] == year)]
+
+        # If no data found, return
+        if len(year_df) == 0:
+            print(f"NO DATA FOR {year}")
+            return None
+
         year_df.reindex(columns=['date', 'month', 'day', 'year', 'positive_tweets', 'negative_tweets', 'total_tweets'])
         year_df = year_df.groupby(['month'], as_index=False).sum()
 
