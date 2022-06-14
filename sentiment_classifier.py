@@ -9,25 +9,16 @@ from os.path import exists
 from pathlib import Path
 from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.corpus import opinion_lexicon
-from sklearn.naive_bayes import (BernoulliNB, ComplementNB, MultinomialNB,)
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.neural_network import MLPClassifier
 
 # Paths for pickled files
 root_path = Path('.')  # Get root file path with pathlib
 pickle_dir = 'pickled_files'
 joblib_dir = 'joblib_files'
-pos_bigram_path = root_path / joblib_dir / 'positive_bigram_finder.joblib'
-neg_bigram_path = root_path / joblib_dir / 'negative_bigram_finder.joblib'
-positive_tweets_path = root_path / pickle_dir / 'positive_tweets.pickle'
-negative_tweets_path = root_path / pickle_dir / 'negative_tweets.pickle'
-positive_features_path = root_path / pickle_dir / 'positive_tweet_features.pickle'
-negative_features_path = root_path / pickle_dir / 'negative_tweet_features.pickle'
 accuracies_path = root_path / pickle_dir / 'classifier_accuracies.pickle'
-
 
 if not os.path.exists(pickle_dir):
     os.mkdir(pickle_dir)
@@ -44,7 +35,7 @@ negative_words = set(opinion_lexicon.negative())
 
 
 def extract_features(text):
-    """Finds features that indicate positive sentiment in given text using VADER."""
+    """Finds features that indicate positive sentiment in given text string using VADER and the Opinion Lexicon."""
     features = {}
     pos_wordcount = 0
     neg_wordcount = 0
@@ -83,6 +74,7 @@ def extract_features(text):
 
 
 def store_data(file_path, obj, compress=3):
+    """Stores input 'obj' data to the given file path."""
     print(f'Storing data to {file_path}')
     str_path = str(file_path)
     if str_path.endswith('.pickle'):
@@ -93,6 +85,7 @@ def store_data(file_path, obj, compress=3):
 
 
 def get_data(file_path):
+    """Retrieves data from the given file path."""
     print(f'Getting data from {file_path}')
     data = None
     str_path = str(file_path)
@@ -107,6 +100,7 @@ def get_data(file_path):
 
 
 def get_sentiment140_training_tweets():
+    """Gets positive and negative tweet data from Sentiment140 training tweets."""
     print('Getting sentiment140 data')
     # sentiment140_df = pandas.read_csv('sentiment140_training_data_tweets.csv', encoding='ISO-8859-1')
 
@@ -131,6 +125,7 @@ def get_sentiment140_training_tweets():
 
 
 def get_features_from_tweets(positive_tweets, negative_tweets):
+    """Gets features from input positive and negative tweets."""
     print("Getting features from tweets...")
     pos_features, neg_features = [], []
 
@@ -147,6 +142,7 @@ def get_features_from_tweets(positive_tweets, negative_tweets):
 
 
 def get_features():
+    """Gets and returns features acquired from training tweets."""
     positive_tweets, negative_tweets = get_sentiment140_training_tweets()
     positive_features, negative_features = get_features_from_tweets(positive_tweets, negative_tweets)
 
@@ -155,17 +151,14 @@ def get_features():
 
 
 def get_classifiers():
+    """Initializes all classifiers."""
     print('Initializing classifiers...')
     classifiers_to_get = {
         "NaiveBayes": None,
-        "BernoulliNB": BernoulliNB(),
-        "ComplementNB": ComplementNB(),
         "MultinomialNB": MultinomialNB(),
         "KNeighborsClassifier": KNeighborsClassifier(),
         "DecisionTreeClassifier": DecisionTreeClassifier(),
-        "RandomForestClassifier": RandomForestClassifier(),
         "LogisticRegression": LogisticRegression(),
-        "MLPClassifier": MLPClassifier(max_iter=1000),
     }
     need_features = False
     classifiers = {}
@@ -174,7 +167,6 @@ def get_classifiers():
     for name in classifiers_to_get.keys():
         classifier_path = root_path / joblib_dir / f'{name}.joblib'
         if not exists(classifier_path):
-            print(classifier_path)
             need_features = True
             break
 
@@ -214,6 +206,7 @@ def get_classifiers():
 
 
 def test_classifier_accuracy(name, classifier, features):
+    """Tests classifier accuracy."""
     classifier_accuracy = {name: 0}
     test_count = int(len(features) * 0.3)
 
@@ -226,6 +219,7 @@ def test_classifier_accuracy(name, classifier, features):
 
 
 def test_classifiers(classifiers):
+    """Tests each classifier in input dictionary."""
     features = get_features()
     accuracies = []
     test_count = int(len(features) * 0.3)
@@ -242,6 +236,7 @@ def test_classifiers(classifiers):
 
 
 def classify_tweets(tweets, classifiers):
+    """Classifies a list of tweets using input classifiers."""
     print('Classifying tweets...')
     analysis_results = []
 
@@ -260,6 +255,7 @@ def classify_tweets(tweets, classifiers):
 
 
 def get_majority_sentiments(results):
+    """Determines the majority sentiment of classification results for a tweet."""
     sentiments_list = []
     for result in results:
         positive_classifications = 0
@@ -283,9 +279,3 @@ def get_majority_sentiments(results):
 def classify(tweets, classifiers):
     classifications = classify_tweets(tweets, classifiers)
     return get_majority_sentiments(classifications)
-
-
-
-b = test_classifiers(get_classifiers())
-store_data(accuracies_path, b)
-print(b)

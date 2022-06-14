@@ -16,7 +16,7 @@
 
   <!-- Top Container -->
 
-  <div class="top-container">
+  <div id="top-container">
     <h3 class="main-header">Twitter Sentiment Analyzer</h3>
     <h3 class="main-header">by Nicholas MacKinnon</h3>
     <div class="link-div">
@@ -115,7 +115,7 @@
     <h2 style="text-align: center;">Classification Results</h2>
     <div class="classification-results-div">
       <p class="centered-paragraph" id="classified-tweet"></p>
-      <table class="results-table">
+      <table id="results-table">
         <tr>
           <th class="results-header">Classifier</th>
           <th class="results-header">Sentiment Prediction</th>
@@ -123,14 +123,6 @@
         <tr>
           <td><a href="https://towardsdatascience.com/naive-bayes-classifier-81d512f50a7c" target="_blank" rel="noopener noreferrer">Naive Bayes</a></td>
           <td id="NaiveBayes">-</td>
-        </tr>
-        <tr>
-          <td><a href="https://medium.com/@nansha3120/bernoulli-naive-bayes-and-its-implementation-cca33ccb8d2e" target="_blank" rel="noopener noreferrer">Bernoulli Naive Bayes</a></td>
-          <td id="BernoulliNB">-</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.geeksforgeeks.org/complement-naive-bayes-cnb-algorithm/" target="_blank" rel="noopener noreferrer">Complement Naive Bayes</a></td>
-          <td id="ComplementNB">-</td>
         </tr>
         <tr>
           <td><a href="https://www.mygreatlearning.com/blog/multinomial-naive-bayes-explained/" target="_blank" rel="noopener noreferrer">Multinomial Naive Bayes</a></td>
@@ -145,16 +137,8 @@
           <td id="DecisionTreeClassifier">-</td>
         </tr>
         <tr>
-          <td><a href="https://www.geeksforgeeks.org/random-forest-classifier-using-scikit-learn/" target="_blank" rel="noopener noreferrer">Random Forest</a></td>
-          <td id="RandomForestClassifier">-</td>
-        </tr>
-        <tr>
           <td><a href="https://towardsdatascience.com/logistic-regression-explained-9ee73cede081" target="_blank" rel="noopener noreferrer">Logistic Regression</a></td>
           <td id="LogisticRegression">-</td>
-        </tr>
-        <tr>
-          <td><a href="https://medium.com/@AI_with_Kain/understanding-of-multilayer-perceptron-mlp-8f179c4a135f" target="_blank" rel="noopener noreferrer">Multi-Layer Perceptron</a></td>
-          <td id="MLPClassifier">-</td>
         </tr>
       </table>
       <p class="centered-paragraph">
@@ -253,9 +237,8 @@
     a set of features (means of Vader's compound, negative, and positive scores, and number of positive and negative words from the Opinion Lexicon)
     was created with which to train the classifiers. The classifiers (created using
     <a href="https://scikit-learn.org/stable/" target="_blank" rel="noopener noreferrer">scikit-learn</a>) were trained on
-    70% of the Sentiment140 training tweets and tested on the remaining 30%. The list of classifiers and their accuracies can be seen in the
-    <a href="single-tweet-classifier">Single-Tweet Classifier</a> section.
-    For each tweet, each classifier produced a sentiment prediction. The majority of these sentiments (either "positive" or "negative") was
+    70% of the Sentiment140 training tweets and tested on the remaining 30%.
+    For each tweet, each classifier produces a sentiment prediction. The majority of these sentiments (either "positive" or "negative") was
     then used as the final sentiment estimate.
     After classifying each tweet for the day, the data is saved to a CSV file that include each tweet's text, date, likes, retweets, and sentiment prediction.
   </p>
@@ -263,9 +246,10 @@
   <div class="link-div">
     <ul>
       <li><a href="https://github.com/nickmack823/Twitter-Sentiment-Analyzer" target="_blank" rel="noopener noreferrer">View on GitHub</a></li>
+      <li><a href="linkedin.com/nickmack823" target="_blank" rel="noopener noreferrer">My LinkedIn</a></li>
     </ul>
-    <p class="copyright">Nicholas MacKinnon © 2022</p>
   </div>
+  <p class="copyright">Nicholas MacKinnon © 2022</p>
 </body>
 <script type="text/javascript" src="static/index.js"></script>
 

@@ -7,7 +7,6 @@ from queue import Queue
 import pycld2
 from scraper import Scraper
 from sentiment_classifier import classify
-from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
 from os.path import exists
 import pandas
 
@@ -21,6 +20,7 @@ if not os.path.exists(root_path / data_dir):
 
 
 class DataProcessingThread(threading.Thread):
+
     def __init__(self, main_obj):
         threading.Thread.__init__(self)
         self.in_queue = Queue()
@@ -45,6 +45,7 @@ class DataProcessingThread(threading.Thread):
 
 
 def to_numeric(tweet_engagement_value):
+    """Sends input tweet like/retweet value to a number."""
     # Non-numeric characters included in some tweet like/retweet values
     non_numeric = [',', '.', 'K', 'M']
     num_string = ''
@@ -68,8 +69,6 @@ def to_numeric(tweet_engagement_value):
 def clean_data(scraped_data):
     """
     Iterates through input tuple of data lists and cleans them.
-    :param scraped_data: a tuple of lists of scraped tweets, dates, likes, and retweets
-    :return: the a tuple with cleaned list elements
     """
     texts_list, dates_list, likes_list, retweets_list = scraped_data[0], scraped_data[1], scraped_data[2], scraped_data[3]
     output_data = ([], [], [], [])
@@ -126,9 +125,6 @@ def clean_data(scraped_data):
 def save_to_csv(file_path, final_data):
     """
     Saves cleaned data to an existing CSV file if one exists, else writes to a new file.
-    :param file_path:
-    :param final_data:
-    :return:
     """
     # Check if file exists already
     file_exists = exists(file_path)
@@ -170,6 +166,7 @@ def save_to_csv(file_path, final_data):
 
 
 def get_days_in_month(month, year):
+    """Determines the number of days in the given month."""
     months_with_31_days = ['January', 'March', 'May', 'July', 'August', 'October', 'December']
 
     # Determine final day of the given month
@@ -204,6 +201,7 @@ class Main:
         self.tweets_scraped = 0
 
     def day_tweets_already_collected(self, date):
+        """Checks if tweets from the input date have already been scraped."""
         if not exists(self.data_file_path):
             return False
 
@@ -216,6 +214,7 @@ class Main:
             return False
 
     def collect_tweet_data_for_range(self):
+        """Begins data collection process based on this class instance's initialization parameters."""
         start = self.date_range[0]
         end = self.date_range[1]
 
@@ -279,6 +278,7 @@ class Main:
         print(f'Tweets for {start} to {end} scraped, exiting.')
         self.scraper.driver.quit()
         self.done_scraping = True
+
         return True
 
 

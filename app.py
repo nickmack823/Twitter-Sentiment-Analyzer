@@ -36,6 +36,7 @@ days_completed = 0
 
 
 def segment_date(date):
+    """Splits input date into day, month, and year"""
     day = date[8:] if date[8:][0] != '0' else date[9:]
     month = months[int(date[5:7]) - 1]
     year = date[0:4]
@@ -44,6 +45,7 @@ def segment_date(date):
 
 
 def collect_data(hashtag, date_range):
+    """Begins data collection for input hashtag and date range."""
     global classifiers, days_completed
     if classifiers is None:
         classifiers = get_classifiers()
@@ -75,17 +77,9 @@ def collect_data(hashtag, date_range):
         collect_data(hashtag, date_range)
     else:
         print(f'Data for #{hashtag} during {date_range} collected successfully!')
-        upload_data_to_drive(hashtag)
         return
 
 
-def upload_data_to_drive(hashtag):
-    api_url = "https://1ag589gyn2.execute-api.us-east-1.amazonaws.com/Stage01"
-
-
-upload_data_to_drive('abortion')
-
-# To render HTML files, there must be a folder called 'templates' with the files in them.
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -177,13 +171,5 @@ def classify_tweet():
     return results_dict
 
 
-# To render static files (static, videos, css files, etc), create 'static' folder and reference things in there
-
-# TO DIRECTLY EDIT A WEBPAGE FROM CHROME ITSELF:
-# 1. Inspect --> Console --> document.body.contentEditable=true
-# To delete: 'Select element tool' --> del
-# TO SAVE CHANGES: CTRL+S --> replace HTML file
-
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)

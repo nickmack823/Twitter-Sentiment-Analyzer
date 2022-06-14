@@ -1,23 +1,7 @@
 
-/* Top Container */
-
-.top-container {
-  text-align: center;
-  background-color: cyan;
-  padding: 100px;
-  border: solid;
-}
-
 .main-header {
   font-family: "Montserrat", serif;
   font-size: 1.5rem;
-}
-
-.main-list {
-  font-family: "Merriweather", serif;
-  list-style-type: none;
-  padding-top: 20px;
-  font-size: 1.25rem;
 }
 
 .section-headers {
@@ -55,25 +39,6 @@
   font-size: 1.25rem;
 }
 
-/* Introduction */
-
-
-#intro-image {
-  width: 25%;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Topic Sentiment Analyzer */
-
-#analyzer-image {
-  width: 35%;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
 .form-inline {
   display: flex;
   flex-flow: row wrap;
@@ -94,6 +59,71 @@
   padding: 10px 10px 10px 0px;
   background-color: #fff;
   border: 1px solid #ddd;
+}
+
+/* Credit to https://epicbootstrap.com/snippets/footer-basic */
+.link-div {
+  padding: 40px 0px 0px 0px;
+  color: black;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.link-div ul {
+  padding: 0;
+  width: 45%;
+  list-style: none;
+  text-align: center;
+  font-size: 1.5rem;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+.link-div li {
+  display: inline;
+  padding: 0 10px;
+}
+
+.link-div ul a {
+  color: inherit;
+  opacity:0.8;
+}
+
+.link-div ul a:hover {
+  opacity:1;
+}
+/* Credit to https://epicbootstrap.com/snippets/footer-basic */
+
+/* Top Container */
+
+#top-container {
+  text-align: center;
+  background-image: url("twitter_background.jpg");
+  background-repeat: no-repeat;
+  background-color: #1abfdf;
+  padding: 100px 0px 100px 0px;
+  width: 100%;
+  height: 100%;
+}
+
+/* Introduction */
+
+#intro-image {
+  width: 25%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Topic Sentiment Analyzer */
+
+#analyzer-image {
+  width: 35%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 
@@ -136,22 +166,16 @@ table, th, td {
   border-collapse: collapse;
 }
 
-
-.results-header {
-  background-color: #D6EEEE;
-  width: 50%;
-}
-
-.results-table {
+#results-table {
   display: inline-table;
   text-align: center;
   width: 30%;
   margin-left: 35%;
 }
 
-#classifier-results-info {
-  display: inline;
-  margin-left: 10%;
+.results-header {
+  background-color: #D6EEEE;
+  width: 50%;
 }
 
 /* Data Viewer */
@@ -164,14 +188,6 @@ table, th, td {
   border-radius: 50%;
 }
 
-.data-filter-div {
-  text-align: center;
-}
-
-/* #data-list {
-
-} */
-
 /* Project Details */
 
 #details-image {
@@ -183,41 +199,9 @@ table, th, td {
 }
 
 /* Footer */
-.link-div {
-  padding:40px 0;
-  color: black;
-}
 
-.link-div ul {
-  padding:0;
-  list-style:none;
-  text-align:center;
-  font-size:1.5rem;
-  line-height:1.6;
-  margin-bottom:0;
+.copyright {
+  text-align: center;
+  font-size: 13px;
+  color: #aaa;
 }
-
-.link-div li {
-  display: inline;
-  padding: 0 10px;
-}
-
-.link-div ul a {
-  color: inherit;
-  /* text-decoration: none; */
-  opacity:0.8;
-}
-
-.link-div ul a:hover {
-  opacity:1;
-}
-
-.link-div .copyright {
-  margin-top:15px;
-  text-align:center;
-  font-size:13px;
-  color:#aaa;
-  margin-bottom:0;
-}
-
-/* Credit to https://epicbootstrap.com/snippets/footer-basic */

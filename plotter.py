@@ -4,6 +4,7 @@ import pandas as pd
 
 
 def create_df_from_csv(file_path):
+    """Reads CSV of tweet data at input file path and creates a DataFrame from it."""
     df = pd.read_csv(file_path)
 
     df['date'] = pd.to_datetime(df['date'])
@@ -63,6 +64,7 @@ class Plotter:
         self.df = create_df_from_csv(pathlib.Path('.') / "data_files" / f"{hashtag}.csv")
 
     def plot_all_days(self):
+        """Plots all data in the DataFrame."""
         colors = []
         for positive_score, negative_score in zip(self.df['positive_score'], self.df['negative_score']):
             if positive_score > negative_score:
@@ -85,9 +87,11 @@ class Plotter:
         file_name = f'{self.hashtag}_all_data.html'
         html_path = "templates/" + file_name
         plot.write_html(html_path)
+
         return file_name
 
     def plot_month(self, month, year):
+        """Plots DataFrame data for the given month and year."""
         month_df = self.df.copy()
         month_df = month_df.loc[(month_df['month'] == month) & (month_df['year'] == year)]
 
@@ -108,6 +112,7 @@ class Plotter:
         return file_name
 
     def plot_year(self, year):
+        """Plots DataFrame data for the given year."""
         # Now, let's zoom out to consider a whole year at once (weighted)
         year_df = self.df.copy()
         year_df = year_df.loc[(year_df['year'] == year)]
@@ -135,4 +140,5 @@ class Plotter:
         file_name = f'{self.hashtag}_{year}.html'
         html_path = "templates/" + file_name
         plot.write_html(html_path)
+
         return file_name

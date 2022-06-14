@@ -42,6 +42,7 @@ classes = locations['classes']
 
 
 def scrape_displayed_tweet_elements(tweet_elements, collected_elements):
+    """Scrapes data from each input HTML tweet element."""
     newly_collected = []
     texts, dates, likes, retweets = [], [], [], []
     # Scrape currently available tweets
@@ -65,6 +66,7 @@ class Scraper:
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
     def select_date_parameters(self, start_date, end_date):
+        """Selects search data parameters using given start and end date."""
         start_day, start_month, start_year = start_date
         end_day, end_month, end_year = end_date
 
@@ -116,9 +118,6 @@ class Scraper:
         """
         Accesses results page from advanced Twitter search with given search parameters, accessing tweets
         that contain the hashtag to search within the given timeframe.
-        :param start_date:
-        :param end_date:
-        :return:
         """
         self.driver.get(search_url)
 
@@ -137,6 +136,7 @@ class Scraper:
         search_button.click()
 
     def reached_end_of_results(self, tweet_element_height, waited_for_load=False):
+        """Checks whether or not all results have been scraped from the page."""
         page_height = self.driver.execute_script("return document.body.scrollHeight")
         total_scrolled_height = self.driver.execute_script("return window.pageYOffset + window.innerHeight")
         # Check if scrolled to end of page (no further tweets are loading)
@@ -151,7 +151,6 @@ class Scraper:
     def scrape(self):
         """
         Scrapes available tweets until parameter limit has been met.
-        :return:
         """
         text_data, date_data, likes_data, retweets_data = [], [], [], []
         collected_tweets = []
