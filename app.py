@@ -63,11 +63,12 @@ def segment_date(date):
     return day, month, year
 
 
-def collect_data(hashtag, date_range):
+def collect_data(hashtag, date_range, main_object=None):
     """Begins data collection for input hashtag and date range."""
     if cache.get('classifiers') is None:
         cache.set('classifiers', get_classifiers())
-    main_obj = main.Main(hashtag, date_range, cache.get('classifiers'))
+    if main_object is None:
+        main_obj = main.Main(hashtag, date_range, cache.get('classifiers'))
     try:
         progress_generator = main_obj.collect_tweet_data_for_range()
         for n in progress_generator:
@@ -90,7 +91,7 @@ def collect_data(hashtag, date_range):
     if encountered_error:
         print('Retrying data collection...')
         main_obj.scraper.driver.quit()
-        collect_data(hashtag, date_range)
+        collect_data(hashtag, date_range, main_object=main_obj)
     else:
         print(f'Data for #{hashtag} during {date_range} collected successfully!')
         return
