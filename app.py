@@ -1,18 +1,31 @@
 import os
 from os.path import exists
+import pandas
 from flask import Flask, render_template, jsonify, request
+from flask_caching import Cache
 import json
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
 import main
 from sentiment_classifier import get_classifiers, classify_tweets
-from apscheduler.schedulers.background import BackgroundScheduler
 from plotter import Plotter
 
-classifiers = None
+data_files_path = os.path.join("static", "data_files")
+
+months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
+          'October', 'November', 'December']
+
+app = Flask(__name__)
+# Config for Cache
+app.config["SECRET_KEY"] = "ajndsisd82h2e"
+# app.config["CACHE_TYPE"] = "SimpleCache"
+cache = Cache(app, config={
+    'CACHE_TYPE': 'FileSystemCache',
+    'CACHE_DIR': 'cached',
+    'CACHE_DEFAULT_TIMEOUT': 3600})
 
 
 def clear_templates():
-    print('Performing scheduled deletion of plot templates...')
+    print('Performing deletion of plot templates...')
     for file_name in os.listdir("templates"):
         if not file_name == "index.html":
             os.remove(os.path.join("templates", file_name))
@@ -20,19 +33,25 @@ def clear_templates():
     print('Deletion completed.')
 
 
+def clear_empty_data():
+    print('Clearing empty data files...')
+    for file_name in os.listdir(data_files_path):
+        df = pandas.read_csv(os.path.join(data_files_path, file_name))
+        if len(df) == 0:
+            os.remove(os.path.join(data_files_path, file_name))
+            print(file_name + " removed.")
+    print('Deletion completed.')
+
+
+def clear_cache():
+    for file_name in os.listdir('cached'):
+        os.remove(os.path.join('cached', file_name))
+    print('Cache cleared.')
+
+
 clear_templates()
-# Create scheduled job to delete generated plot html files every hour
-scheduler = BackgroundScheduler(daemon=True)
-scheduler.add_job(clear_templates, 'interval', hours=24)
-scheduler.start()
-
-app = Flask(__name__)
-
-months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
-          'October', 'November', 'December']
-curr_hashtag = None
-plot_html = ''
-days_completed = 0
+clear_empty_data()
+clear_cache()
 
 
 def segment_date(date):
@@ -46,16 +65,13 @@ def segment_date(date):
 
 def collect_data(hashtag, date_range):
     """Begins data collection for input hashtag and date range."""
-    global classifiers, days_completed
-    if classifiers is None:
-        classifiers = get_classifiers()
-    main_obj = main.Main(hashtag, date_range, classifiers)
+    if cache.get('classifiers') is None:
+        cache.set('classifiers', get_classifiers())
+    main_obj = main.Main(hashtag, date_range, cache.get('classifiers'))
     try:
-        main_obj.collect_tweet_data_for_range()
         progress_generator = main_obj.collect_tweet_data_for_range()
         for n in progress_generator:
-            days_completed = n
-            update_progress()
+            cache.set('days_completed', n)
         encountered_error = False
 
     except TimeoutException as e:
@@ -87,11 +103,9 @@ def home():
 
 @app.route("/data-analysis/<string:user_input>", methods=['GET', 'POST'])  # For getting input data
 def analyze_data(user_input):
-    global curr_hashtag
-
     user_input = json.loads(user_input)
     hashtag = user_input[0]
-    curr_hashtag = hashtag
+    cache.set('curr_hashtag', hashtag)
     date_range = (segment_date(user_input[1]), segment_date(user_input[2]))
     collect_data(hashtag, date_range)
     return ''
@@ -99,24 +113,24 @@ def analyze_data(user_input):
 
 @app.route("/update-progress", methods=['GET', 'POST'])
 def update_progress():
-    return jsonify(days_completed)
+    progress = cache.get('days_completed')
+    if progress is None:
+        progress = 0
+        cache.set('days_completed', 0)
+    return jsonify(progress)
 
 
 @app.route("/reset-progress", methods=['GET', 'POST'])
 def reset_progress():
-    global days_completed
-    days_completed = 0
+    cache.set('days_completed', 0)
     return ''
 
 
 @app.route("/get-plot", methods=["GET", "POST"])
 def get_data_plot():
-    print("GET")
     user_input = request.get_json()
-    print(user_input)
     hashtag = user_input['hashtag']
     other = user_input['other']
-    global plot_html
     try:
         p = Plotter(hashtag)
         if other != '':
@@ -124,25 +138,33 @@ def get_data_plot():
             # Month data
             if len(other) == 7:
                 month = months[int(other[5:]) - 1]
-                plot_html = p.plot_month(month, year)
+                cache.set('plot_html', p.plot_month(month, year))
             else:
-                plot_html = p.plot_year(year)
+                cache.set('plot_html', p.plot_year(year))
         else:
-            plot_html = p.plot_all_days()
+            cache.set('plot_html', p.plot_all_days())
     except FileNotFoundError as e:
         print(e)
-        plot_html = None
+        cache.set('plot_html', None)
+    except KeyError as e:
+        print(e)
+        cache.set('plot_html', None)
 
-    if plot_html is None:
+    cached_html = cache.get('plot_html')
+    if cached_html is None:
         return 'false'
-    elif exists("templates/" + plot_html):
+    elif exists("templates/" + cached_html):
         return 'true'
 
 
 @app.route("/plot")
 def render_plot():
-    if exists("templates/" + plot_html) and plot_html != '':
-        return render_template(plot_html)
+    cached_html = cache.get('plot_html')
+    if cached_html is None:
+        return "ERROR: Data not found."
+    plot_path = "templates/" + cached_html
+    if exists(plot_path) and cached_html is not None:
+        return render_template(cached_html)
     else:
         return "ERROR: Data not found."
 
@@ -150,8 +172,8 @@ def render_plot():
 @app.route("/get-data-files", methods=['GET', 'POST'])
 def get_data_files():
     file_list = []
-    for file_name in os.listdir("data_files"):
-        file_list.append(f"data_files/{file_name}")
+    for file_name in os.listdir(data_files_path):
+        file_list.append(f"{data_files_path}/{file_name}")
     return jsonify(file_list)
 
 
@@ -159,11 +181,10 @@ def get_data_files():
 def classify_tweet():
     tweet = str(request.get_data())[2:]
     tweet = tweet[:-1]
-    global classifiers
-    if classifiers is None:
-        classifiers = get_classifiers()
+    if cache.get('classifiers') is None:
+        cache.set('classifiers', get_classifiers())
 
-    results = classify_tweets([tweet], classifiers)
+    results = classify_tweets([tweet], cache.get('classifiers'))
     results_dict = {}
     for result in results[0]:
         results_dict[result[0]] = result[1]

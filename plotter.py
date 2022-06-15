@@ -1,4 +1,4 @@
-import pathlib
+from pathlib import Path
 import plotly.express as px
 import pandas as pd
 
@@ -61,11 +61,16 @@ class Plotter:
 
     def __init__(self, hashtag):
         self.hashtag = hashtag
-        self.df = create_df_from_csv(pathlib.Path('.') / "data_files" / f"{hashtag}.csv")
+        self.df = create_df_from_csv(Path('.') / 'static' / 'data_files' / f"{hashtag}.csv")
 
     def plot_all_days(self):
         """Plots all data in the DataFrame."""
         colors = []
+
+        if len(self.df) == 0:
+            print(f"NO DATA FOR {self.hashtag}")
+            return None
+
         for positive_score, negative_score in zip(self.df['positive_score'], self.df['negative_score']):
             if positive_score > negative_score:
                 colors.append('blue')
@@ -97,6 +102,7 @@ class Plotter:
 
         # If no data found, return
         if len(month_df) == 0:
+            print(f"NO DATA FOR {self.hashtag} {month}, {year}")
             return None
 
         plot = px.bar(month_df, x="day", y=["positive_score", "negative_score"],
@@ -119,7 +125,7 @@ class Plotter:
 
         # If no data found, return
         if len(year_df) == 0:
-            print(f"NO DATA FOR {year}")
+            print(f"NO DATA FOR {self.hashtag} {year}")
             return None
 
         year_df.reindex(columns=['date', 'month', 'day', 'year', 'positive_tweets', 'negative_tweets', 'total_tweets'])

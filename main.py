@@ -12,11 +12,10 @@ import pandas
 
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
           'October', 'November', 'December']
-root_path = Path('.')
-data_dir = 'data_files'
+data_dir = Path('.') / 'static' / 'data_files'
 
-if not os.path.exists(root_path / data_dir):
-    os.mkdir(root_path / data_dir)
+if not os.path.exists(data_dir):
+    os.mkdir(data_dir)
 
 
 class DataProcessingThread(threading.Thread):
@@ -40,6 +39,7 @@ class DataProcessingThread(threading.Thread):
             self.main.tweets_scraped += len(data_cleaned[0])
             print('Classification Thread: Data saved to CSV, done.')
             if self.main.done_scraping and self.in_queue.qsize() == 0:
+                self.main.days_completed += 1
                 print('Classification Thread: Closing classification thread.')
                 break
 
@@ -178,23 +178,26 @@ def get_days_in_month(month, year):
         else:
             days = [str(day) for day in range(1, 29)]
     else:
-        days = [str(day) for day in range(1, 32)] if month in months_with_31_days else [str(day) for day in
-                                                                                        range(1, 31)]
+        days = [str(day) for day in range(1, 32)] if month in months_with_31_days else [str(day) for day in range(1, 31)]
 
     return days
 
 
 class Main:
-    def __init__(self, selected_hashtag, date_range, classifiers):
+
+    def __init__(self, selected_hashtag, date_range, classifiers, using_thread=False):
         self.selected_hashtag = selected_hashtag
-        self.data_file_path = root_path / data_dir / f"{selected_hashtag}.csv"
+        self.data_file_path = data_dir / f"{selected_hashtag}.csv"
         self.date_range = date_range
         self.classifiers = classifiers
 
         self.scraper = Scraper(selected_hashtag)
         self.current_search_year = self.date_range[0][2]
-        self.data_thread = DataProcessingThread(self)
-        self.data_thread.daemon = True
+
+        self.using_thread = using_thread
+        if self.using_thread:
+            self.data_thread = DataProcessingThread(self)
+            self.data_thread.daemon = True
         self.done_scraping = False
 
         self.days_completed = 0
@@ -219,9 +222,10 @@ class Main:
         end = self.date_range[1]
 
         # Begin data processing thread
-        self.data_thread.start()
+        if self.using_thread:
+            self.data_thread.start()
 
-        print(f'Scraping from {start} to {end}')
+        print(f'Scraping #{self.selected_hashtag} from {start} to {end}')
         start_day, start_month, start_year = start
         end_day, end_month, end_year = end
 
@@ -268,10 +272,18 @@ class Main:
 
             self.scraper.search(current_date, current_date_next_day)
             scraped_data = self.scraper.scrape()
+            print('Processing data...')
+            if self.using_thread:
+                self.data_thread.in_queue.put(scraped_data)
+            else:
+                data_cleaned = clean_data(scraped_data)
+                sentiments = classify(data_cleaned[0], self.classifiers)
+                print('Data cleaned and classified, saving to CSV...')
+                interval_final_data = (data_cleaned[0], data_cleaned[1], data_cleaned[2], data_cleaned[3], sentiments)
 
-            # Delegate data cleaning, classification, and writing to CSV to a thread to allow scraper to continue on
-            self.data_thread.in_queue.put(scraped_data)
-
+                save_to_csv(self.data_file_path, interval_final_data)
+                self.tweets_scraped += len(data_cleaned[0])
+                print('Data saved to CSV, done.')
             self.days_completed += 1
             yield self.days_completed
 

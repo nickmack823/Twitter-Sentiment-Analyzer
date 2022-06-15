@@ -179,9 +179,9 @@ function beginDataCollection() {
     progressBarAnalyzer.style.width = "0%";
     progressText.style.display = "block";
     progressText.style.color = "black";
-    progressText.innerHTML = "0/" + daysToComplete + " Days Completed";
+    progressText.innerHTML = "0/" + daysToComplete + " Collections Completed";
 
-    progressInterval = setInterval(updateProgress, 10000);
+    progressInterval = setInterval(updateProgress, 5000);
     clockInterval = clockStart();
   }
 }
@@ -190,7 +190,7 @@ function beginDataCollection() {
 function advanceProgressBar(progress) {
   let percentComplete = (progress/daysToComplete)*100;
   progressBarAnalyzer.style.width = percentComplete + "%";
-  progressText.innerHTML = progress + "/" + daysToComplete + " Days Completed";
+  progressText.innerHTML = progress + "/" + daysToComplete + " Collections Completed";
 
   if (progress === daysToComplete) {
     finalizeProgressBar();
@@ -200,6 +200,7 @@ function advanceProgressBar(progress) {
     const request = new XMLHttpRequest();
     request.open('POST', '/reset-progress');
     request.send();
+    setTimeout(populateDataList, 5000);
   }
 }
 
@@ -228,6 +229,7 @@ const classificationMajority = document.getElementById("classification-majority"
 
 function classifyTweet() {
   let tweetInput = tweetTextInput.value;
+  classifiedTweet.innerHTML = "Loading...";
   $.ajax({
     type: "POST",
     url: "/classify-tweet",
@@ -270,6 +272,7 @@ const dataYearInput = document.getElementById('data-year-input');
 const dataYearDiv = document.getElementById('data-year-div');
 const checkingDataText = document.getElementById('checking-data-text');
 const viewDataButton = document.getElementById('view-data-button');
+const downloadDataLink = document.getElementById('raw-data-link');
 toggleButton(viewDataButton, "off");
 
 const dataList = document.getElementById('data-list');
@@ -297,6 +300,9 @@ function selectDataFilter() {
 
 function setDataFilter() {
   let hashtag = dataList.options[dataList.selectedIndex].text;
+  downloadDataLink.href = "static/data_files/" + hashtag + ".csv";
+  downloadDataLink.innerHTML = "Download Raw Data (" + hashtag + ")";
+
   let data = [];
   if (viewMonthDataRadio.checked) {
     data = [hashtag, dataMonthInput.value];
@@ -323,7 +329,7 @@ function setDataFilter() {
         checkingDataText.innerHTML = "Data exists, filter set.";
         toggleButton(viewDataButton, "on");
       } else {
-        checkingDataText.innerHTML = "Data for input has not been collected, please try new input or use Topic Sentiment Analyzer.";
+        checkingDataText.innerHTML = "Data for input has not been collected/does not exist, please try new input or use Topic Sentiment Analyzer.";
       }
     },
   });
@@ -336,8 +342,12 @@ function populateDataList() {
     success: function (fileList) {
       for (let i = 0; i < fileList.length; i++) {
           let file_path = fileList[i];
-          let hashtag = file_path.slice(11).replace(".csv", "");
-          dataList.options[dataList.options.length] = new Option(hashtag, file_path);
+          let hashtag = file_path.slice(18).replace(".csv", "");
+          if (i === 0) {
+            downloadDataLink.href = "static/data_files/" + hashtag + ".csv";
+            downloadDataLink.innerHTML = "Download Raw Data (" + hashtag + ")";
+          }
+          dataList.options[i] = new Option(hashtag, file_path);
       }
     }
   });

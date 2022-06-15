@@ -12,10 +12,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 search_url = 'https://twitter.com/search-advanced'
 
-# File paths
-root_path = Path('.')
-scraper_dir = 'scraper_files'
-data_dir = 'data_files'
+data_dir = Path('.') / 'static' / 'data_files'
 
 locations = {
   "xpaths": {
@@ -40,6 +37,11 @@ locations = {
 xpaths = locations['xpaths']
 classes = locations['classes']
 
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--disable-gpu")
+
 
 def scrape_displayed_tweet_elements(tweet_elements, collected_elements):
     """Scrapes data from each input HTML tweet element."""
@@ -62,8 +64,8 @@ class Scraper:
 
     def __init__(self, hashtag):
         self.hashtag = hashtag
-        self.file_path = root_path / data_dir / f"{self.hashtag}.csv"
-        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        # self.driver = webdriver.Chrome(options=chrome_options) # for use in cloud
 
     def select_date_parameters(self, start_date, end_date):
         """Selects search data parameters using given start and end date."""
@@ -121,7 +123,6 @@ class Scraper:
         """
         self.driver.get(search_url)
 
-        # try:
         these_hashtags = WebDriverWait(self.driver, 20).until \
             (expected_conditions.presence_of_element_located((By.NAME, 'theseHashtags')))
         these_hashtags.send_keys(self.hashtag)
