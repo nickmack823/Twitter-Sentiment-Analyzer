@@ -1,13 +1,16 @@
 import os
+import time
 from os.path import exists
 import pandas
 from flask import Flask, render_template, jsonify, request
 from flask_caching import Cache
-import json
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
 import main
+import json
+import datetime
 from sentiment_classifier import get_classifiers, classify_tweets
 from plotter import Plotter
+from urllib3.exceptions import NewConnectionError, MaxRetryError
 
 data_files_path = os.path.join("static", "data_files")
 
@@ -21,7 +24,7 @@ app.config["SECRET_KEY"] = "ajndsisd82h2e"
 cache = Cache(app, config={
     'CACHE_TYPE': 'FileSystemCache',
     'CACHE_DIR': 'cached',
-    'CACHE_DEFAULT_TIMEOUT': 3600})
+    'CACHE_DEFAULT_TIMEOUT': 36000})
 
 
 def clear_templates():
@@ -30,7 +33,7 @@ def clear_templates():
         if not file_name == "index.html":
             os.remove(os.path.join("templates", file_name))
             print(file_name + " removed.")
-    print('Deletion completed.')
+    print('Templates deleted.')
 
 
 def clear_empty_data():
@@ -40,7 +43,7 @@ def clear_empty_data():
         if len(df) == 0:
             os.remove(os.path.join(data_files_path, file_name))
             print(file_name + " removed.")
-    print('Deletion completed.')
+    print('Data files cleared.')
 
 
 def clear_cache():
@@ -49,9 +52,37 @@ def clear_cache():
     print('Cache cleared.')
 
 
-clear_templates()
-clear_empty_data()
-clear_cache()
+def perform_cleaning():
+    print('Performing hourly cleanup...')
+    clear_templates()
+    clear_empty_data()
+    clear_cache()
+    print('Cleaning finished.')
+
+
+def scheduled_cleaning():
+    print('Checking cleaning schedule...')
+    cleaned = False
+    if not exists('scheduled_task.json'):
+        with open('scheduled_task.json', 'w') as f:
+            json.dump({"last_clean": time.time()}, f)
+            perform_cleaning()
+    else:
+        with open('scheduled_task.json', 'r') as f:
+            last_clean = json.load(f)['last_clean']
+            # Perform clean in 1hr or more has passed
+            time_since_clean = time.time() - last_clean
+            print(f'Time since last cleaning: {datetime.timedelta(seconds=time_since_clean)}.')
+            if time_since_clean >= 3600:
+                perform_cleaning()
+                cleaned = True
+    # Write new time if performed clean
+    if cleaned:
+        with open('scheduled_task.json', 'w') as f:
+            json.dump({"last_clean": time.time()}, f)
+
+
+scheduled_cleaning()
 
 
 def segment_date(date):
@@ -63,15 +94,12 @@ def segment_date(date):
     return day, month, year
 
 
-def collect_data(hashtag, date_range, main_object=None):
+def collect_data(hashtag, date_range, main_obj):
     """Begins data collection for input hashtag and date range."""
-    if cache.get('classifiers') is None:
-        cache.set('classifiers', get_classifiers())
-    if main_object is None:
-        main_obj = main.Main(hashtag, date_range, cache.get('classifiers'))
     try:
         progress_generator = main_obj.collect_tweet_data_for_range()
         for n in progress_generator:
+            print(f'ProgGenerator: {n}')
             cache.set('days_completed', n)
         encountered_error = False
 
@@ -87,14 +115,25 @@ def collect_data(hashtag, date_range, main_object=None):
     except IndexError as e:
         print(f'ERROR: {e}')
         encountered_error = True
+    except ConnectionRefusedError as e:
+        print(f'ERROR: {e}')
+        encountered_error = True
+    except NewConnectionError as e:
+        print(f'ERROR: {e}')
+        encountered_error = True
+    except MaxRetryError as e:
+        print(f'ERROR: {e}')
+        encountered_error = True
 
     if encountered_error:
         print('Retrying data collection...')
         main_obj.scraper.driver.quit()
-        collect_data(hashtag, date_range, main_object=main_obj)
+        main_obj.days_completed = 0
+        cache.set('days_completed', 0)
+        return "failure"
     else:
         print(f'Data for #{hashtag} during {date_range} collected successfully!')
-        return
+        return "success"
 
 
 @app.route("/")
@@ -102,14 +141,20 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/data-analysis/<string:user_input>", methods=['GET', 'POST'])  # For getting input data
-def analyze_data(user_input):
-    user_input = json.loads(user_input)
-    hashtag = user_input[0]
+@app.route("/data-analysis", methods=['GET', 'POST'])  # For getting input data
+def analyze_data():
+    print('Collecting and analyzing data...')
+    user_input = request.get_json()
+    print(user_input)
+    hashtag = user_input['hashtag']
     cache.set('curr_hashtag', hashtag)
-    date_range = (segment_date(user_input[1]), segment_date(user_input[2]))
-    collect_data(hashtag, date_range)
-    return ''
+    date_range = (segment_date(user_input['start']), segment_date(user_input['end']))
+
+    if cache.get('classifiers') is None:
+        cache.set('classifiers', get_classifiers())
+    main_obj = main.Main(hashtag, date_range, cache.get('classifiers'))
+
+    return collect_data(hashtag, date_range, main_obj)
 
 
 @app.route("/update-progress", methods=['GET', 'POST'])

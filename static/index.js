@@ -160,10 +160,6 @@ function beginDataCollection() {
   let endDate = endDateObject.value;
   let input = [hashtag, startDate, endDate];
   if (inputValid(input)) {
-    const request = new XMLHttpRequest();
-    let jsonInput = JSON.stringify(input);
-    request.open('POST', '/data-analysis/' + jsonInput);
-    request.send();
 
     toggleButton(dataCollectionButton, "off");
 
@@ -181,9 +177,28 @@ function beginDataCollection() {
     progressText.style.color = "black";
     progressText.innerHTML = "0/" + daysToComplete + " Collections Completed";
 
-    progressInterval = setInterval(updateProgress, 5000);
+    progressInterval = setInterval(updateProgress, 20000);
     clockInterval = clockStart();
+
+    setTimeout(requestDataCollection(input), 2000);
   }
+}
+
+function requestDataCollection(input) {
+  const request = new XMLHttpRequest();
+  let response;
+  request.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        response = this.responseText;
+        // If scraper runs into an error, restart it
+        if (response === "failure") {
+          setTimeout(requestDataCollection(input), 3000);
+        }
+    }
+  };
+  request.open('POST', '/data-analysis', true);
+  request.setRequestHeader("Content-Type", "application/json");
+  request.send(JSON.stringify({hashtag: input[0], start: input[1], end: input[2]}));
 }
 
 
