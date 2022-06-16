@@ -265,7 +265,6 @@ class Main:
             # Data for this date already collected, go to next day
             if self.day_tweets_already_collected(current_date):
                 self.days_completed += 1
-                yield self.days_completed  # Yield number of days completed to display progress on webpage
                 continue
 
             print(f'Scraping from {current_date} to {current_date_next_day}...')

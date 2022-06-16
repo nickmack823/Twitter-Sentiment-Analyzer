@@ -4,7 +4,7 @@ from os.path import exists
 import pandas
 from flask import Flask, render_template, jsonify, request
 from flask_caching import Cache
-from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException, WebDriverException
 import main
 import json
 import datetime
@@ -101,39 +101,26 @@ def collect_data(hashtag, date_range, main_obj):
         for n in progress_generator:
             print(f'ProgGenerator: {n}')
             cache.set('days_completed', n)
+            return "success"
         encountered_error = False
 
-    except TimeoutException as e:
+    except (TimeoutException, StaleElementReferenceException, NoSuchElementException, WebDriverException) as e:
         print(f'ERROR: {e}')
         encountered_error = True
-    except StaleElementReferenceException as e:
-        print(f'ERROR: {e}')
-        encountered_error = True
-    except NoSuchElementException as e:
+    except (ConnectionRefusedError, NewConnectionError, MaxRetryError) as e:
         print(f'ERROR: {e}')
         encountered_error = True
     except IndexError as e:
-        print(f'ERROR: {e}')
-        encountered_error = True
-    except ConnectionRefusedError as e:
-        print(f'ERROR: {e}')
-        encountered_error = True
-    except NewConnectionError as e:
-        print(f'ERROR: {e}')
-        encountered_error = True
-    except MaxRetryError as e:
         print(f'ERROR: {e}')
         encountered_error = True
 
     if encountered_error:
         print('Retrying data collection...')
         main_obj.scraper.driver.quit()
-        main_obj.days_completed = 0
-        cache.set('days_completed', 0)
         return "failure"
     else:
         print(f'Data for #{hashtag} during {date_range} collected successfully!')
-        return "success"
+        return "success_end"
 
 
 @app.route("/")

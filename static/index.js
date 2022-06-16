@@ -169,7 +169,9 @@ function beginDataCollection() {
     let d2 = new Date(selectedEndDate);
     let timeDiff = d2.getTime() - d1.getTime();
     let dayDiff = timeDiff / (1000 * 3600 * 24);
+
     daysToComplete = dayDiff;
+    currentProgress = 0;
 
     analyzerProgess.style.display = "block";
     progressBarAnalyzer.style.width = "0%";
@@ -193,6 +195,11 @@ function requestDataCollection(input) {
         // If scraper runs into an error, restart it
         if (response === "failure") {
           setTimeout(requestDataCollection(input), 3000);
+        } else if (response === "success") {
+          // Request data for next day
+          setTimeout(requestDataCollection(input), 3000);
+        } else if (response === "success_end") {
+          finishDataCollection();
         }
     }
   };
@@ -208,14 +215,7 @@ function advanceProgressBar(progress) {
   progressText.innerHTML = progress + "/" + daysToComplete + " Collections Completed";
 
   if (progress === daysToComplete) {
-    finalizeProgressBar();
-    clearInterval(progressInterval);
-    clearInterval(clockInterval);
-    toggleButton(dataCollectionButton, "on");
-    const request = new XMLHttpRequest();
-    request.open('POST', '/reset-progress');
-    request.send();
-    setTimeout(populateDataList, 5000);
+    finishDataCollection();
   }
 }
 
@@ -230,9 +230,21 @@ function updateProgress() { // make ajax request on btn click
     type: "POST",
     url: "/update-progress", // url to the function
     success: function (daysCompleted) {
+      currentProgress = daysCompleted;
       advanceProgressBar(daysCompleted); // response contains the json
     },
   });
+}
+
+function finishDataCollection() {
+  finalizeProgressBar();
+  clearInterval(progressInterval);
+  clearInterval(clockInterval);
+  toggleButton(dataCollectionButton, "on");
+  const request = new XMLHttpRequest();
+  request.open('POST', '/reset-progress');
+  request.send();
+  setTimeout(populateDataList, 5000);
 }
 
 // Single-Tweet Classifier
