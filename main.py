@@ -133,13 +133,13 @@ def save_to_csv(file_path, final_data):
         # Get existing rows to prevent adding duplicate data
         with open(file_path, 'r', encoding='utf-8') as file1:
             # Existing data
-            existing_rows_text = [line[0] for line in csv.reader(file1, delimiter=',')] # Set -t < list -t for lookup
-            existing_rows_date = [line[1] for line in csv.reader(file1, delimiter=',')]
+            existing_rows_text = [line[0] for line in csv.reader(file1, delimiter='|')] # Set -t < list -t for lookup
+            existing_rows_date = [line[1] for line in csv.reader(file1, delimiter='|')]
             tweet_tuples = {(text, date) for text, date in zip(existing_rows_text, existing_rows_date)}
 
             # Write to existing file
             with open(file_path, 'a', encoding='utf-8', newline='') as file2:
-                writer = csv.writer(file2)
+                writer = csv.writer(file2, delimiter="|")
                 duplicates = 0
                 for n in range(len(final_data[0])):
                     tweet, date, likes, retweets, sentiment = final_data[0][n], final_data[1][n], final_data[2][n], \
@@ -154,7 +154,7 @@ def save_to_csv(file_path, final_data):
     else:
         # Write to new CSV (newline set to '' to prevent empty rows between each entry)
         with open(file_path, 'w', encoding='utf-8', newline='') as file3:
-            writer = csv.writer(file3)
+            writer = csv.writer(file3, delimiter="|")
             # If writing to new file, add header row
             headers = ['tweet', 'date', 'likes', 'retweets', 'sentiment']
             writer.writerow(headers)
@@ -208,7 +208,7 @@ class Main:
         if not exists(self.data_file_path):
             return False
 
-        df = pandas.read_csv(self.data_file_path)
+        df = pandas.read_csv(self.data_file_path, delimiter="|")
         dates_col = pandas.Series(df['date'].tolist())
         date_value = f'{date[1][0:3]} {date[0]}, {self.current_search_year}'
         if date_value in set(dates_col):

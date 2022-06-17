@@ -5,7 +5,7 @@ import pandas as pd
 
 def create_df_from_csv(file_path):
     """Reads CSV of tweet data at input file path and creates a DataFrame from it."""
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, delimiter="|")
 
     df['date'] = pd.to_datetime(df['date'])
     df.sort_values(by='date', inplace=True)

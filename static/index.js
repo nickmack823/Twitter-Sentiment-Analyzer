@@ -194,11 +194,14 @@ function requestDataCollection(input) {
         response = this.responseText;
         // If scraper runs into an error, restart it
         if (response === "failure") {
+          console.log("RECEIVE: FAILURE")
           setTimeout(requestDataCollection(input), 3000);
         } else if (response === "success") {
           // Request data for next day
+          console.log("RECEIVE: SUCCESS")
           setTimeout(requestDataCollection(input), 3000);
         } else if (response === "success_end") {
+            console.log("RECEIVE: SUCCESS_END")
           finishDataCollection();
         }
     }
@@ -231,6 +234,10 @@ function updateProgress() { // make ajax request on btn click
     url: "/update-progress", // url to the function
     success: function (daysCompleted) {
       currentProgress = daysCompleted;
+      // Register new hashtag option for Data Viewer
+      if (daysCompleted === 1) {
+          populateDataList();
+      }
       advanceProgressBar(daysCompleted); // response contains the json
     },
   });
