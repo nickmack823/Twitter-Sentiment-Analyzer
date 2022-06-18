@@ -80,18 +80,20 @@ class Plotter:
                 colors.append('')
 
         plot = px.bar(self.df, x="date", y="total_score",
-                     hover_data=hover_data, height=500, title="All Data " + f"(#{self.hashtag})", color=colors,
-                     labels={"date": "Date", "total_score": "Total Engagement Score"})
+                      hover_data=hover_data, height=500, title="All Data " + f"(#{self.hashtag})", color=colors,
+                      labels={"date": "Date", "total_score": "Total Engagement Score"})
         plot.update_layout(legend_title_text='Majority')
         plot.for_each_trace(lambda t: t.update(name={"blue": "positive", "red": "negative", '': ''}[t.name]))
 
         # Prevent bars becoming difficult to see as time range increases
-        plot.update_layout(bargap=0.1, bargroupgap = 0,)
+        plot.update_layout(bargap=0.1, bargroupgap=0, )
         plot.update_traces(marker_line_width=0, selector=dict(type="bar"))
 
         file_name = f'{self.hashtag}_all_data.html'
         html_path = "templates/" + file_name
         plot.write_html(html_path)
+        print(self.df.head())
+        print(self.df.tail())
 
         return file_name
 
@@ -132,7 +134,8 @@ class Plotter:
         year_df = year_df.groupby(['month'], as_index=False).sum()
 
         # Sort by month for easier reading and drop unnecessary columns
-        months_order = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+        months_order = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
+                        'October',
                         'November', 'December']
         year_df['month'] = pd.Categorical(year_df['month'], categories=months_order, ordered=True)
         year_df.sort_values(by='month', inplace=True)

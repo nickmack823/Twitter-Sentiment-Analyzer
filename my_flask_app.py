@@ -21,6 +21,7 @@ months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augus
 app = Flask(__name__)
 # Config for Cache
 app.config["SECRET_KEY"] = "ajndsisd82h2e"
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 # app.config["CACHE_TYPE"] = "SimpleCache"
 cache = Cache(app, config={
     'CACHE_TYPE': 'FileSystemCache',
@@ -54,17 +55,18 @@ def clear_cache():
 
 
 def clear_tmp():
-    for name in os.listdir("/tmp"):
-        try:
-            curr_path = os.path.join("/tmp", name)
-            if os.path.isfile(curr_path):
-                os.remove(curr_path)
-                print(name + " removed.")
-            elif os.path.isdir(curr_path):
-                shutil.rmtree(curr_path)
-                print(name + " directory removed.")
-        except OSError as e:
-            print(e)
+    if exists("/tmp"):
+        for name in os.listdir("/tmp"):
+            try:
+                curr_path = os.path.join("/tmp", name)
+                if os.path.isfile(curr_path):
+                    os.remove(curr_path)
+                    print(name + " removed.")
+                elif os.path.isdir(curr_path):
+                    shutil.rmtree(curr_path)
+                    print(name + " directory removed.")
+            except OSError as e:
+                print(e)
 
 
 def perform_cleaning():
@@ -243,4 +245,4 @@ def classify_tweet():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run()
